@@ -1,9 +1,5 @@
 package com.example.mobapp
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.runBlocking
-
 class FunkceCiste {
     companion object {
         public fun PodobnostStringu(str1: String, str2: String): Double {
