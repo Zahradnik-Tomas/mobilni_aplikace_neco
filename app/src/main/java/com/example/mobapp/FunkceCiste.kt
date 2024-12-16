@@ -1,28 +1,23 @@
 package com.example.mobapp
 
+import kotlin.math.pow
+import kotlin.math.sqrt
+
 class FunkceCiste {
     companion object {
         public fun PodobnostStringu(str1: String, str2: String): Double {
             var par1 = RozparujString(str1.uppercase())
             var par2 = RozparujString(str2.uppercase())
-            var intersekce = 0
-            var unie = par1.size + par2.size
-            for (i in par1.indices) {
-                val temp = par1.get(i)
-                for (j in par2.indices) {
-                    val temp2 = par2.get(j)
-                    if (temp.equals(temp2)) {
-                        intersekce += 1
-                        par2.removeAt(j)
-                        break
-                    }
-                }
-            }
-            return (2.0 * intersekce) / unie
+            return PodobnostStringu(par1, par2)
         }
 
         public fun PodobnostStringu(par1: ArrayList<String>, str2: String): Double {
             var par2 = RozparujString(str2.uppercase())
+            return PodobnostStringu(par1, par2)
+        }
+
+        public fun PodobnostStringu(par1: ArrayList<String>, Par2: ArrayList<String>): Double {
+            var par2 = ArrayList<String>(Par2)
             var intersekce = 0
             var unie = par1.size + par2.size
             for (i in par1.indices) {
@@ -46,15 +41,6 @@ class FunkceCiste {
                 for (par in ParyVeSlove(slova[i])) {
                     pary.add(par)
                 }
-            }
-            return pary
-        }
-
-        private fun ParyVeSlove(str: String): Array<String> {
-            val pocetParu = str.length - 1
-            val pary = Array<String>(pocetParu) { "" }
-            for (i in 0..<pocetParu) {
-                pary[i] = str.substring(i, i + 2)
             }
             return pary
         }
@@ -84,6 +70,22 @@ class FunkceCiste {
                 listKVraceni.add(Stranky[index])
             }
             return listKVraceni.toTypedArray()
+        }
+
+        public fun VzdalenostBodu(
+            bod1: android.graphics.Point,
+            bod2: android.graphics.Point
+        ): Double {
+            return sqrt((bod1.x - bod2.x).toDouble().pow(2) + (bod1.y - bod2.y).toDouble().pow(2))
+        }
+
+        private fun ParyVeSlove(str: String): Array<String> {
+            val pocetParu = str.length - 1
+            val pary = Array<String>(pocetParu) { "" }
+            for (i in 0..<pocetParu) {
+                pary[i] = str.substring(i, i + 2)
+            }
+            return pary
         }
 
         private fun PatriLinkaStrance(

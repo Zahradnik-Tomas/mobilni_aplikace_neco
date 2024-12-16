@@ -3,13 +3,24 @@ package com.example.mobapp
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
+import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.example.mobapp.databinding.MainActivityBinding
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class MainActivity : ComponentActivity() {
     private lateinit var viewBinding: MainActivityBinding
+    private lateinit var cameraExecutor: ExecutorService
+    private val imageAnalyzerCam = ImageAnalyzerCam()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,14 +35,42 @@ class MainActivity : ComponentActivity() {
         } else {
             requestPermissions()
         }
+        cameraExecutor = Executors.newSingleThreadExecutor()
     }
 
     override fun onPause() {
         super.onPause()
+        cameraExecutor.shutdown()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        cameraExecutor.shutdown()
+    }
+
+    private fun startCamera() {
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+        cameraProviderFuture.addListener({
+            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+            val preview = Preview.Builder().build()
+                .also { it.setSurfaceProvider(viewBinding.viewFinder.surfaceProvider) }
+            val imageAnalyzer = ImageAnalysis.Builder()
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .setResolutionSelector(
+                    ResolutionSelector.Builder()
+                        .setResolutionStrategy(ResolutionStrategy.HIGHEST_AVAILABLE_STRATEGY)
+                        .build()
+                ).build().also { it.setAnalyzer(cameraExecutor, imageAnalyzerCam) }
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            try {
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(
+                    this, cameraSelector, preview, imageAnalyzer
+                )
+            } catch (e: Exception) {
+                Log.e("START_CAMERA", "bind cameraProvideru hodil chybu", e)
+            }
+        }, ContextCompat.getMainExecutor(this))
     }
 
     private fun requestPermissions() {
@@ -69,7 +108,7 @@ class MainActivity : ComponentActivity() {
                     }
             }
             if (permissionGranted && cameraGranted) {
-                // prace s kamerou
+                startCamera()
             } else if (permissionGranted) {
                 // prace bez kamery - z obrazku?
             } else {
