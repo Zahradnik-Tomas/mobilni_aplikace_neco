@@ -9,10 +9,15 @@ import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 
 class ImageAnalyzerCam : ImageAnalysis.Analyzer {
-    val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    private lateinit var stranky: Array<Stranka>
+    private var stranka: Stranka? = null
 
     @OptIn(ExperimentalGetImage::class)
     override fun analyze(image: ImageProxy) {
+        if (!::stranky.isInitialized) {
+            return
+        }
         val mediaImage = image.image
         if (mediaImage != null) {
             recognizer.process(
@@ -20,9 +25,19 @@ class ImageAnalyzerCam : ImageAnalysis.Analyzer {
                     mediaImage,
                     image.imageInfo.rotationDegrees
                 )
-            ).addOnSuccessListener { Text ->
-                //TODO FunkceCiste.ZpracujTentononc
+            ).addOnSuccessListener { text ->
+                if (stranka == null) {
+                    stranka = FunkceSpinave.VratDetekovanouStranku(text, stranky)
+                }
+                if (stranka != null) {
+                    //TODO FunkceCiste.ZpracujTentononc
+                }
             }
         }
+    }
+
+    public fun NastavStranky(stranky: Array<Stranka>) {
+        this.stranky = stranky
+        stranka = null
     }
 }
