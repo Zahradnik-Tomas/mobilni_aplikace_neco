@@ -1,5 +1,7 @@
 package com.example.mobapp
 
+import android.graphics.Point
+import kotlin.jvm.Throws
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -77,6 +79,66 @@ class FunkceCiste {
             bod2: android.graphics.Point
         ): Double {
             return sqrt((bod1.x - bod2.x).toDouble().pow(2) + (bod1.y - bod2.y).toDouble().pow(2))
+        }
+
+        /* Zkontroluje, zda bod patri kotve a vrati jeji index, pripadne vrati index mozne predchozi/nasledujici kotvy */
+        public fun VratPatriciKotvu(bod: Point, kotva: Int, kotvy: Array<Kotva>): Int {
+            if (kotvy[kotva].bod == null) {
+                throw IllegalArgumentException("Kotva ma null bod")
+            }
+            val vzdalenostDolu = VzdalenostBodu(kotvy[kotva].bod!![3], bod)
+            if (VzdalenostBodu(kotvy[kotva].bod!![0], bod) < vzdalenostDolu) {
+                if (kotva != 0) {
+                    return kotva - 1
+                }
+                return -1
+            } else if (kotvy.size - 1 > kotva && kotvy[kotva].bod != null) {
+                val temp = VzdalenostBodu(kotvy[kotva + 1].bod!![3], bod)
+                if (temp < vzdalenostDolu && VzdalenostBodu(
+                        kotvy[kotva + 1].bod!![0],
+                        bod
+                    ) > temp
+                ) {
+                    return kotva + 1
+                }
+            }
+            return kotva
+        }
+
+        /* Chci aby to bylo ciste, proto to cache */
+        public fun VratMoznouKotvu(
+            stranka: Stranka,
+            linky: ArrayList<com.google.mlkit.vision.text.Text.Line>,
+            cacheHodnot: java.util.ArrayList<ArrayList<ArrayList<String>>>
+        ): Kotva? {
+            if (stranka.kotvy.isEmpty()) {
+                return null
+            }
+            val body = Array(stranka.kotvy.size) { 0 }
+            for (line in linky) {
+                val temp = RozparujString(line.text)
+                for (kotva in stranka.kotvy.indices) {
+                    for (hodnota in stranka.kotvy[kotva].hodnoty.indices) {
+                        if (PodobnostStringu(cacheHodnot[kotva][hodnota], temp) > 0.8) {
+                            body[kotva] += 1
+                        }
+                    }
+                }
+            }
+            val temp = VratVhodneIndexy(body)
+            if (temp[0] == 0) {
+                return null
+            } else {
+                var maximum = body[temp[0]]
+                var index = temp[0]
+                for (i in temp) {
+                    if (body[i] > maximum) {
+                        maximum = body[i]
+                        index = i
+                    }
+                }
+                return stranka.kotvy[index]
+            }
         }
 
         private fun ParyVeSlove(str: String): Array<String> {

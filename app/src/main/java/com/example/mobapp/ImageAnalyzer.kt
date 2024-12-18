@@ -28,9 +28,12 @@ class ImageAnalyzerCam : ImageAnalysis.Analyzer {
             ).addOnSuccessListener { text ->
                 if (stranka == null) {
                     stranka = FunkceSpinave.VratDetekovanouStranku(text, stranky)
+                    if (stranka != null) {
+                        CacheRozparani.NastavCache(stranka!!)
+                    }
                 }
                 if (stranka != null) {
-                    //TODO FunkceCiste.ZpracujTentononc
+                    FunkceSpinave.ZpracujText(text, stranka!!)
                 }
             }
         }
@@ -38,6 +41,14 @@ class ImageAnalyzerCam : ImageAnalysis.Analyzer {
 
     public fun NastavStranky(stranky: Array<Stranka>) {
         this.stranky = stranky
+        FunkceSpinave.NastavStranky(stranky)
         stranka = null
+    }
+
+    public fun NastavStranku(stranka: Stranka?) {
+        this.stranka = stranka
+        if (stranka != null) {
+            CacheRozparani.NastavCache(stranka)
+        }
     }
 }
