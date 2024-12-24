@@ -36,6 +36,7 @@ object FunkceSpinave {
         }
         val zbyvajiciLinky = ArrayList<com.google.mlkit.vision.text.Text.Line>()
         val linkyHodnot = ArrayList<com.google.mlkit.vision.text.Text.Line>()
+        /* Hledani kotev */
         var nalezenaKotva = false
         for (block in text.textBlocks) {
             for (line in block.lines) {
@@ -58,6 +59,7 @@ object FunkceSpinave {
                 }
             }
         }
+        /* Hledani hodnot */
         if (nalezenaKotva) {
             for (line in zbyvajiciLinky) {
                 val kotva =
@@ -84,38 +86,29 @@ object FunkceSpinave {
                 ZpracujHodnoty(line, kotva, linkyHodnot)
             }
         }
+        /* Prirazovani hodnot */
         for (line in linkyHodnot) {
-            val kotva = FunkceCiste.VratPatriciKotvu(line.cornerPoints!![0], stranka.kotvy)
+            if (line.confidence < 0.5) {
+                continue
+            }
+            val kotvy: Array<Kotva>
             var chybiHodnota = false
             val vzdalenosti = ArrayList<Double>()
             val hodnoty = ArrayList<Hodnota>()
-            if (kotva == null) {
-                for (kotva in stranka.kotvy) {
-                    for (hodnota in kotva.hodnoty) {
-                        if (hodnota.bod == null) {
-                            chybiHodnota = true
-                            continue
-                        }
-                        val temp =
-                            FunkceCiste.VzdalenostBodu(hodnota.bod!![3], line.cornerPoints!![0])
-                        if (temp > FunkceCiste.VzdalenostBodu(
-                                hodnota.bod!![0],
-                                line.cornerPoints!![0]
-                            )
-                        ) {
-                            continue
-                        }
-                        hodnoty.add(hodnota)
-                        vzdalenosti.add(temp)
-                    }
-                }
+            val tempKotva = FunkceCiste.VratPatriciKotvu(line.cornerPoints!![0], stranka.kotvy)
+            if (tempKotva == null) {
+                kotvy = stranka.kotvy
             } else {
+                kotvy = arrayOf(tempKotva)
+            }
+            for (kotva in kotvy) {
                 for (hodnota in kotva.hodnoty) {
                     if (hodnota.bod == null) {
                         chybiHodnota = true
                         continue
                     }
-                    val temp = FunkceCiste.VzdalenostBodu(hodnota.bod!![3], line.cornerPoints!![0])
+                    val temp =
+                        FunkceCiste.VzdalenostBodu(hodnota.bod!![3], line.cornerPoints!![0])
                     if (temp > FunkceCiste.VzdalenostBodu(
                             hodnota.bod!![0],
                             line.cornerPoints!![0]
