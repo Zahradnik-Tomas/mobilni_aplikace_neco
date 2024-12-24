@@ -5,6 +5,7 @@ import kotlinx.serialization.Transient
 
 @Serializable
 class Stranka(var nazev: String, var kotvy: Array<Kotva>) {
+    var datum = ""
 }
 
 @Serializable
@@ -19,11 +20,8 @@ class Hodnota(var nazev: String, var typ: Int = 0) {
     var bod: Array<android.graphics.Point>? = null
 
     var hodnota =
-        "0" //TODO def hodnota podle typu.... Jedinacek.ListTypu[typ].VratDefHodnotu <- typ je z interfacu
+        "" //TODO def hodnota podle typu.... Jedinacek.ListTypu[typ].VratDefHodnotu <- typ je z interfacu
 
     @Transient
     var confidence = 0.0f
-
-    @Transient
-    var hodnotaBod: Array<android.graphics.Point>? = null
 }

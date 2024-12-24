@@ -8,13 +8,13 @@ import kotlin.math.sqrt
 class FunkceCiste {
     companion object {
         public fun PodobnostStringu(str1: String, str2: String): Double {
-            var par1 = RozparujString(str1.uppercase())
-            var par2 = RozparujString(str2.uppercase())
+            var par1 = RozparujString(str1)
+            var par2 = RozparujString(str2)
             return PodobnostStringu(par1, par2)
         }
 
         public fun PodobnostStringu(par1: ArrayList<String>, str2: String): Double {
-            var par2 = RozparujString(str2.uppercase())
+            var par2 = RozparujString(str2)
             return PodobnostStringu(par1, par2)
         }
 
@@ -36,7 +36,8 @@ class FunkceCiste {
             return (2.0 * intersekce) / unie
         }
 
-        public fun RozparujString(str: String): ArrayList<String> {
+        public fun RozparujString(string: String): ArrayList<String> {
+            val str = string.uppercase()
             val pary = ArrayList<String>()
             val slova = str.split("\\s")
             for (i in slova.indices) {
@@ -81,28 +82,60 @@ class FunkceCiste {
             return sqrt((bod1.x - bod2.x).toDouble().pow(2) + (bod1.y - bod2.y).toDouble().pow(2))
         }
 
-        /* Zkontroluje, zda bod patri kotve a vrati jeji index, pripadne vrati index mozne predchozi/nasledujici kotvy */
-        public fun VratPatriciKotvu(bod: Point, kotva: Int, kotvy: Array<Kotva>): Int {
-            if (kotvy[kotva].bod == null) {
-                throw IllegalArgumentException("Kotva ma null bod")
-            }
-            val vzdalenostDolu = VzdalenostBodu(kotvy[kotva].bod!![3], bod)
-            if (VzdalenostBodu(kotvy[kotva].bod!![0], bod) < vzdalenostDolu) {
-                if (kotva != 0) {
-                    return kotva - 1
+        public fun VratPatriciKotvu(
+            str: String,
+            bod: Point,
+            kotvy: Array<Kotva>,
+            cacheHodnot: java.util.ArrayList<ArrayList<ArrayList<String>>>
+        ): Kotva? {
+            val tempArrayKotev = ArrayList<Kotva>()
+            val tempArrayVzdalenosti = ArrayList<Double>()
+            val temp = RozparujString(str)
+            for (kotva in kotvy.indices) {
+                if (kotvy[kotva].bod == null) {
+                    continue
                 }
-                return -1
-            } else if (kotvy.size - 1 > kotva && kotvy[kotva].bod != null) {
-                val temp = VzdalenostBodu(kotvy[kotva + 1].bod!![3], bod)
-                if (temp < vzdalenostDolu && VzdalenostBodu(
-                        kotvy[kotva + 1].bod!![0],
-                        bod
-                    ) > temp
-                ) {
-                    return kotva + 1
+                var nalezeno = false
+                for (hodnota in kotvy[kotva].hodnoty.indices) {
+                    if (PodobnostStringu(cacheHodnot[kotva][hodnota], temp) > 0.8) {
+                        nalezeno = true
+                        break
+                    }
                 }
+                if (!nalezeno) {
+                    continue
+                }
+                val temp2 = VzdalenostBodu(kotvy[kotva].bod!![3], bod)
+                if (VzdalenostBodu(kotvy[kotva].bod!![0], bod) < temp2) {
+                    continue
+                }
+                tempArrayVzdalenosti.add(temp2)
+                tempArrayKotev.add(kotvy[kotva])
             }
-            return kotva
+            if (tempArrayKotev.size > 0) {
+                return tempArrayKotev[tempArrayVzdalenosti.indexOf(tempArrayVzdalenosti.minOrNull())]
+            }
+            return null
+        }
+
+        public fun VratPatriciKotvu(bod: Point, kotvy: Array<Kotva>): Kotva? {
+            val tempArrayKotev = ArrayList<Kotva>()
+            val tempArrayVzdalenosti = ArrayList<Double>()
+            for (kotva in kotvy) {
+                if (kotva.bod == null) {
+                    continue
+                }
+                val temp = VzdalenostBodu(kotva.bod!![3], bod)
+                if (VzdalenostBodu(kotva.bod!![0], bod) < temp) {
+                    continue
+                }
+                tempArrayKotev.add(kotva)
+                tempArrayVzdalenosti.add(temp)
+            }
+            if (tempArrayKotev.size > 0) {
+                return tempArrayKotev[tempArrayVzdalenosti.indexOf(tempArrayVzdalenosti.minOrNull())]
+            }
+            return null
         }
 
         /* Chci aby to bylo ciste, proto to cache */
@@ -126,7 +159,7 @@ class FunkceCiste {
                 }
             }
             val temp = VratVhodneIndexy(body)
-            if (temp[0] == 0) {
+            if (body[temp[0]] == 0) {
                 return null
             } else {
                 var maximum = body[temp[0]]
@@ -174,7 +207,7 @@ class FunkceCiste {
 
         private fun VratVhodneIndexy(listVhodnosti: Array<Int>): Array<Int> {
             if (listVhodnosti.size < 2) {
-                return listVhodnosti
+                return listVhodnosti.indices.toList().toTypedArray()
             }
             val tempList = ArrayList<Int>()
             val maxVhodnost = listVhodnosti.max()

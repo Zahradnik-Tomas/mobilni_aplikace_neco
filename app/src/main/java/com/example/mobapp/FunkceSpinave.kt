@@ -32,18 +32,17 @@ object FunkceSpinave {
             kotva.bod = null
             for (hodnota in kotva.hodnoty) {
                 hodnota.bod = null
-                hodnota.hodnotaBod = null
             }
         }
-        val zbyvajiciKotvy = ArrayList(stranka.kotvy.indices.toList())
         val zbyvajiciLinky = ArrayList<com.google.mlkit.vision.text.Text.Line>()
+        val linkyHodnot = ArrayList<com.google.mlkit.vision.text.Text.Line>()
         var nalezenaKotva = false
         for (block in text.textBlocks) {
             for (line in block.lines) {
                 val temp = FunkceCiste.RozparujString(line.text)
                 var podobnostMax = 0.0
                 var indexPodobne = -1
-                for (kotva in zbyvajiciKotvy) {
+                for (kotva in stranka.kotvy.indices) {
                     val temp2 =
                         FunkceCiste.PodobnostStringu(CacheRozparani.KotvyCache()[kotva], temp)
                     if (temp2 > 0.8 && temp2 > podobnostMax) {
@@ -53,74 +52,96 @@ object FunkceSpinave {
                 }
                 if (indexPodobne != -1) {
                     nalezenaKotva = true
-                    zbyvajiciKotvy.remove(indexPodobne)
                     stranka.kotvy[indexPodobne].bod = line.cornerPoints
                 } else {
                     zbyvajiciLinky.add(line)
                 }
             }
         }
-        zbyvajiciKotvy.clear()
-        val mozneKotvy = ArrayList<Kotva>()
-        val mozneHodnoty = ArrayList<Hodnota>()
         if (nalezenaKotva) {
-            for (line in zbyvajiciLinky.toTypedArray()) {
-                for (kotva in stranka.kotvy.indices) {
-                    if (stranka.kotvy[kotva].bod != null) {
-                        val temp =
-                            FunkceCiste.VratPatriciKotvu(
-                                line.cornerPoints!![0],
-                                kotva,
-                                stranka.kotvy
-                            )
-                        if (temp != -1) {
-                            if (!mozneKotvy.contains(stranka.kotvy[temp])) {
-                                mozneKotvy.add(stranka.kotvy[temp])
-                            }
-                            ZpracujHodnoty(
-                                line,
-                                stranka.kotvy[temp],
-                                temp,
-                                zbyvajiciLinky,
-                                mozneHodnoty
-                            )
-                        } else {
-                            zbyvajiciLinky.remove(line)
-                        }
-                    }
+            for (line in zbyvajiciLinky) {
+                val kotva =
+                    FunkceCiste.VratPatriciKotvu(
+                        line.text, line.cornerPoints!![0], stranka.kotvy,
+                        CacheRozparani.HodnotyCache()
+                    )
+                if (kotva == null) {
+                    linkyHodnot.add(line)
+                    continue
                 }
+                ZpracujHodnoty(line, kotva, linkyHodnot)
             }
         } else {
             val kotva =
                 FunkceCiste.VratMoznouKotvu(stranka, zbyvajiciLinky, CacheRozparani.HodnotyCache())
             if (kotva == null) {
+                for (line in zbyvajiciLinky) {
+                    linkyHodnot.add(line)
+                }
                 return
             }
-            mozneKotvy.add(kotva)
-            val index = stranka.kotvy.indexOf(kotva)
-            for (line in zbyvajiciLinky.toTypedArray()) {
-                ZpracujHodnoty(line, kotva, index, zbyvajiciLinky, mozneHodnoty)
+            for (line in zbyvajiciLinky) {
+                ZpracujHodnoty(line, kotva, linkyHodnot)
             }
         }
-        for (line in zbyvajiciLinky) {
-            if (line.confidence < 0.5) {
-                continue
-            }
+        for (line in linkyHodnot) {
+            val kotva = FunkceCiste.VratPatriciKotvu(line.cornerPoints!![0], stranka.kotvy)
+            var chybiHodnota = false
             val vzdalenosti = ArrayList<Double>()
             val hodnoty = ArrayList<Hodnota>()
-            for (hodnota in mozneHodnoty) {
-                val temp = FunkceCiste.VzdalenostBodu(hodnota.bod!![3], line.cornerPoints!![0])
-                if (FunkceCiste.VzdalenostBodu(hodnota.bod!![0], line.cornerPoints!![0]) < temp) {
-                    continue
+            if (kotva == null) {
+                for (kotva in stranka.kotvy) {
+                    for (hodnota in kotva.hodnoty) {
+                        if (hodnota.bod == null) {
+                            chybiHodnota = true
+                            continue
+                        }
+                        val temp =
+                            FunkceCiste.VzdalenostBodu(hodnota.bod!![3], line.cornerPoints!![0])
+                        if (temp > FunkceCiste.VzdalenostBodu(
+                                hodnota.bod!![0],
+                                line.cornerPoints!![0]
+                            )
+                        ) {
+                            continue
+                        }
+                        hodnoty.add(hodnota)
+                        vzdalenosti.add(temp)
+                    }
                 }
-                vzdalenosti.add(temp)
-                hodnoty.add(hodnota)
+            } else {
+                for (hodnota in kotva.hodnoty) {
+                    if (hodnota.bod == null) {
+                        chybiHodnota = true
+                        continue
+                    }
+                    val temp = FunkceCiste.VzdalenostBodu(hodnota.bod!![3], line.cornerPoints!![0])
+                    if (temp > FunkceCiste.VzdalenostBodu(
+                            hodnota.bod!![0],
+                            line.cornerPoints!![0]
+                        )
+                    ) {
+                        continue
+                    }
+                    hodnoty.add(hodnota)
+                    vzdalenosti.add(temp)
+                }
             }
-            val temp = vzdalenosti.minOrNull()
-            if (temp != null) {
-                val index = vzdalenosti.indexOf(temp)
-                hodnoty[index].hodnota = line.text
-                mozneHodnoty.remove(hodnoty[index])
+            if (vzdalenosti.isEmpty()) {
+                continue
+            }
+            val temp = vzdalenosti.minOrNull() as Double
+            val hodnota = hodnoty[vzdalenosti.indexOf(temp)]
+            if (FunkceCiste.VzdalenostBodu(
+                    hodnota.bod!![0],
+                    hodnota.bod!![1]
+                ) > temp && (chybiHodnota || hodnota.confidence < line.confidence)
+            ) {
+                hodnota.hodnota = line.text
+                hodnota.confidence = line.confidence
+                if (chybiHodnota) {
+                    hodnota.confidence = 0.0f
+                }
             }
         }
     }
@@ -128,30 +149,22 @@ object FunkceSpinave {
     private fun ZpracujHodnoty(
         line: com.google.mlkit.vision.text.Text.Line,
         kotva: Kotva,
-        indexKotvy: Int,
         zbyvajiciLinky: ArrayList<com.google.mlkit.vision.text.Text.Line>,
-        mozneHodnoty: ArrayList<Hodnota>
     ) {
-        val rozparTemp = FunkceCiste.RozparujString(line.text)
-        var podobnostMax = 0.0
-        var indexPodobne = -1
-        val zbyvajiciHodnoty = ArrayList(kotva.hodnoty.indices.toList())
-        for (hodnota in zbyvajiciHodnoty) {
-            val temp2 = FunkceCiste.PodobnostStringu(
-                CacheRozparani.HodnotyCache()[indexKotvy][hodnota],
-                rozparTemp
-            )
-            if (temp2 > 0.8 && temp2 > podobnostMax) {
-                podobnostMax = temp2
-                indexPodobne = hodnota
+        var index = -1
+        var maxPodobnost = -1.0
+        val rozpar = FunkceCiste.RozparujString(line.text)
+        for (hodnota in kotva.hodnoty.indices) {
+            val temp = FunkceCiste.PodobnostStringu(rozpar, kotva.hodnoty[hodnota].nazev)
+            if (temp > 0.8 && temp > maxPodobnost) {
+                index = hodnota
+                maxPodobnost = temp
             }
         }
-        if (indexPodobne != -1) {
-            zbyvajiciLinky.remove(line)
-            kotva.hodnoty[indexPodobne].bod = line.cornerPoints
-            zbyvajiciHodnoty.remove(indexPodobne)
-            mozneHodnoty.add(kotva.hodnoty[indexPodobne])
+        if (index != -1) {
+            kotva.hodnoty[index].bod = line.cornerPoints
+        } else {
+            zbyvajiciLinky.add(line)
         }
     }
-
 }
