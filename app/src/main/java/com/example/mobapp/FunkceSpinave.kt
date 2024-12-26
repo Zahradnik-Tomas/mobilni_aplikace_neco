@@ -1,7 +1,5 @@
 package com.example.mobapp
 
-import kotlin.math.sqrt
-
 object FunkceSpinave {
     private lateinit var mozneStranky: Array<Stranka>
 
