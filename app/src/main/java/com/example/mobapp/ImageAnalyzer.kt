@@ -37,7 +37,10 @@ class ImageAnalyzerCam : ImageAnalysis.Analyzer {
                 if (stranka != null) {
                     FunkceSpinave.ZpracujText(text, stranka!!)
                     var temp = StringBuilder()
-                    temp.appendLine(stranka!!.nazev)
+                    temp.appendLine("${stranka!!.nazev} ${stranka!!.datum}")
+                    for (hodnota in stranka!!.extraHodnoty) {
+                        temp.appendLine("${hodnota.nazev} ${hodnota.hodnota}")
+                    }
                     for (kotva in stranka!!.kotvy) {
                         temp.appendLine(kotva.nazev)
                         for (hodnota in kotva.hodnoty) {

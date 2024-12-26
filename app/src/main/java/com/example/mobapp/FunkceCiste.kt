@@ -1,11 +1,10 @@
 package com.example.mobapp
 
 import android.graphics.Point
-import kotlin.jvm.Throws
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-class FunkceCiste {
+class FunkceCiste private constructor() {
     companion object {
         public fun PodobnostStringu(str1: String, str2: String): Double {
             var par1 = RozparujString(str1)
@@ -159,8 +158,8 @@ class FunkceCiste {
                 }
             }
             val temp = VratVhodneIndexy(body)
-            if (body[temp[0]] == 0) {
-                return null
+            if (temp.isEmpty() || body[temp[0]] == 0) {
+                return null /* Respektive druha podminka muze byt pravdiva pouze v pripade jedne kotvy, nebot s 0 body to vrati prazdne pole */
             } else {
                 var maximum = body[temp[0]]
                 var index = temp[0]

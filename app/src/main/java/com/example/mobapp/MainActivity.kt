@@ -162,7 +162,6 @@ class MainActivity : ComponentActivity() {
                     }
             }
             if (permissionGranted && cameraGranted) {
-                obstarejStranky()
                 startCamera()
             } else if (permissionGranted) {
                 obstarejStranky()

@@ -54,6 +54,9 @@ object FunkceSpinave {
                 if (indexPodobne != -1) {
                     nalezenaKotva = true
                     stranka.kotvy[indexPodobne].bod = line.cornerPoints
+                    if (stranka.kotvy[indexPodobne].hodnoty.size != 0 && stranka.kotvy[indexPodobne].hodnoty[0].nazev == stranka.kotvy[indexPodobne].nazev) {
+                        zbyvajiciLinky.add(line)
+                    }
                 } else {
                     zbyvajiciLinky.add(line)
                 }
@@ -86,6 +89,7 @@ object FunkceSpinave {
                 ZpracujHodnoty(line, kotva, linkyHodnot)
             }
         }
+        NajdiExtraHodnoty(zbyvajiciLinky, stranka)
         /* Prirazovani hodnot */
         for (line in linkyHodnot) {
             if (line.confidence < 0.5) {
@@ -101,31 +105,50 @@ object FunkceSpinave {
             } else {
                 kotvy = arrayOf(tempKotva)
             }
+            val listHodnot = ArrayList<Hodnota>()
             for (kotva in kotvy) {
                 for (hodnota in kotva.hodnoty) {
-                    if (hodnota.bod == null) {
-                        chybiHodnota = true
-                        continue
-                    }
-                    val temp =
-                        FunkceCiste.VzdalenostBodu(hodnota.bod!![3], line.cornerPoints!![0])
-                    if (temp > FunkceCiste.VzdalenostBodu(
-                            hodnota.bod!![0],
-                            line.cornerPoints!![0]
-                        )
-                    ) {
-                        continue
-                    }
-                    hodnoty.add(hodnota)
-                    vzdalenosti.add(temp)
+                    listHodnot.add(hodnota)
                 }
             }
+            for (hodnota in stranka.extraHodnoty) {
+                if (hodnota.bod != null && !hodnota.nazev.isEmpty()) {
+                    listHodnot.add(hodnota)
+                }
+            }
+            for (hodnota in listHodnot) {
+                if (hodnota.bod == null) {
+                    chybiHodnota = true
+                    continue
+                }
+                val temp =
+                    FunkceCiste.VzdalenostBodu(hodnota.bod!![3], line.cornerPoints!![0])
+                if (temp > FunkceCiste.VzdalenostBodu(
+                        hodnota.bod!![0],
+                        line.cornerPoints!![0]
+                    )
+                ) {
+                    continue
+                }
+                hodnoty.add(hodnota)
+                vzdalenosti.add(temp)
+            }
             if (vzdalenosti.isEmpty()) {
+                if (DrzecTypu.ListTypu[2].JeTimtoTypem(line.text)) {
+                    stranka.datum = line.text
+                } else if (!stranka.extraHodnoty.isEmpty()) {
+                    for (hodnota in stranka.extraHodnoty) {
+                        if (hodnota.nazev == "" && DrzecTypu.ListTypu[hodnota.typ].JeTimtoTypem(line.text)) {
+                            hodnota.hodnota = line.text
+                            break
+                        }
+                    }
+                }
                 continue
             }
             val temp = vzdalenosti.minOrNull() as Double
             val hodnota = hodnoty[vzdalenosti.indexOf(temp)]
-            if (FunkceCiste.VzdalenostBodu(
+            if (DrzecTypu.ListTypu[hodnota.typ].JeTimtoTypem(line.text) && FunkceCiste.VzdalenostBodu(
                     hodnota.bod!![0],
                     hodnota.bod!![1]
                 ) > temp && (chybiHodnota || hodnota.confidence < line.confidence)
@@ -134,6 +157,17 @@ object FunkceSpinave {
                 hodnota.confidence = line.confidence
                 if (chybiHodnota) {
                     hodnota.confidence = 0.0f
+                }
+            } else {
+                if (DrzecTypu.ListTypu[2].JeTimtoTypem(line.text)) {
+                    stranka.datum = line.text
+                } else if (!stranka.extraHodnoty.isEmpty()) {
+                    for (hodnota in stranka.extraHodnoty) {
+                        if (hodnota.nazev == "" && DrzecTypu.ListTypu[hodnota.typ].JeTimtoTypem(line.text)) {
+                            hodnota.hodnota = line.text
+                            break
+                        }
+                    }
                 }
             }
         }
@@ -158,6 +192,24 @@ object FunkceSpinave {
             kotva.hodnoty[index].bod = line.cornerPoints
         } else {
             zbyvajiciLinky.add(line)
+        }
+    }
+
+    private fun NajdiExtraHodnoty(
+        linky: ArrayList<com.google.mlkit.vision.text.Text.Line>,
+        stranka: Stranka
+    ) {
+        for (hodnota in stranka.extraHodnoty) {
+            if (hodnota.nazev.isEmpty()) {
+                continue
+            }
+            val temp = FunkceCiste.RozparujString(hodnota.nazev)
+            for (line in linky) {
+                if (FunkceCiste.PodobnostStringu(temp, line.text) > 0.8) {
+                    hodnota.bod = line.cornerPoints
+                    break
+                }
+            }
         }
     }
 }
