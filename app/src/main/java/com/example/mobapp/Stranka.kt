@@ -23,9 +23,15 @@ class Hodnota(var nazev: String, var typ: Int = 0) {
     @Transient
     var bod: Array<android.graphics.Point>? = null
 
+    @Transient
+    var bodPred: Array<android.graphics.Point>? = null
+
     var hodnota =
         "" //TODO def hodnota podle typu.... Jedinacek.ListTypu[typ].VratDefHodnotu <- typ je z interfacu
 
     @Transient
     var confidence = 0.0f
+
+    @Transient
+    var vzdalenost: Double? = null
 }

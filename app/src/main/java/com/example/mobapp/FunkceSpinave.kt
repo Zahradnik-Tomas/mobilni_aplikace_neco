@@ -1,5 +1,7 @@
 package com.example.mobapp
 
+import kotlin.math.sqrt
+
 object FunkceSpinave {
     private lateinit var mozneStranky: Array<Stranka>
 
@@ -54,9 +56,6 @@ object FunkceSpinave {
                 if (indexPodobne != -1) {
                     nalezenaKotva = true
                     stranka.kotvy[indexPodobne].bod = line.cornerPoints
-                    if (stranka.kotvy[indexPodobne].hodnoty.size != 0 && stranka.kotvy[indexPodobne].hodnoty[0].nazev == stranka.kotvy[indexPodobne].nazev) {
-                        zbyvajiciLinky.add(line)
-                    }
                 } else {
                     zbyvajiciLinky.add(line)
                 }
@@ -148,13 +147,15 @@ object FunkceSpinave {
             }
             val temp = vzdalenosti.minOrNull() as Double
             val hodnota = hodnoty[vzdalenosti.indexOf(temp)]
-            if (DrzecTypu.ListTypu[hodnota.typ].JeTimtoTypem(line.text) && FunkceCiste.VzdalenostBodu(
-                    hodnota.bod!![0],
-                    hodnota.bod!![1]
-                ) > temp && (chybiHodnota || hodnota.confidence < line.confidence)
+            val temp2 = FunkceCiste.VzdalenostBodu(hodnota.bod!![0], hodnota.bod!![1])
+            if (DrzecTypu.ListTypu[hodnota.typ].JeTimtoTypem(line.text) && temp2 > temp && (hodnota.vzdalenost == null || hodnota.bodPred == null || hodnota.vzdalenost!! * (FunkceCiste.VzdalenostBodu(
+                    hodnota.bodPred!![0],
+                    hodnota.bodPred!![1]
+                ) / temp2) > temp) && (chybiHodnota || hodnota.confidence < line.confidence)
             ) {
                 hodnota.hodnota = line.text
                 hodnota.confidence = line.confidence
+                hodnota.vzdalenost = temp
                 if (chybiHodnota) {
                     hodnota.confidence = 0.0f
                 }
@@ -206,6 +207,7 @@ object FunkceSpinave {
             val temp = FunkceCiste.RozparujString(hodnota.nazev)
             for (line in linky) {
                 if (FunkceCiste.PodobnostStringu(temp, line.text) > 0.8) {
+                    hodnota.bodPred = hodnota.bod?.clone()
                     hodnota.bod = line.cornerPoints
                     break
                 }
