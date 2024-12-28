@@ -154,6 +154,7 @@ object FunkceSpinave {
                 hodnota.hodnota = line.text
                 hodnota.confidence = line.confidence
                 hodnota.vzdalenost = temp
+                hodnota.bodPred = hodnota.bod?.clone()
                 if (chybiHodnota) {
                     hodnota.confidence = 0.0f
                 }
@@ -205,7 +206,6 @@ object FunkceSpinave {
             val temp = FunkceCiste.RozparujString(hodnota.nazev)
             for (line in linky) {
                 if (FunkceCiste.PodobnostStringu(temp, line.text) > 0.8) {
-                    hodnota.bodPred = hodnota.bod?.clone()
                     hodnota.bod = line.cornerPoints
                     break
                 }
