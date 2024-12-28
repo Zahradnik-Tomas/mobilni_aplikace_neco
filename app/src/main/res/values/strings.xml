@@ -2,4 +2,5 @@
     <string name="app_name">MobApp</string>
     <string name="soubor_templatu">templates.json</string>
     <string name="klic_json">klic_json</string>
+    <string name="databaze_nazev">databaze</string>
 </resources>
