@@ -33,6 +33,9 @@
         <activity
             android:name=".InternetZiskejStranky"
             android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".VlozDoDBActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
     </application>
 
 </manifest>

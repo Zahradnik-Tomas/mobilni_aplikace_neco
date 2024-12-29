@@ -70,4 +70,8 @@ class ImageAnalyzerCam : ImageAnalysis.Analyzer {
             CacheRozparani.NastavCache(stranka)
         }
     }
+
+    public fun Stranka(): Stranka? {
+        return this.stranka
+    }
 }

@@ -131,11 +131,11 @@ object FunkceSpinave {
                 vzdalenosti.add(temp)
             }
             if (vzdalenosti.isEmpty()) {
-                if (DrzecTypu.ListTypu[2].JeTimtoTypem(line.text)) {
+                if (Typy.DATUM.instance.JeTimtoTypem(line.text)) {
                     stranka.datum = line.text
                 } else if (!stranka.extraHodnoty.isEmpty()) {
                     for (hodnota in stranka.extraHodnoty) {
-                        if (hodnota.nazev == "" && DrzecTypu.ListTypu[hodnota.typ].JeTimtoTypem(line.text)) {
+                        if (hodnota.nazev == "" && hodnota.typ.instance.JeTimtoTypem(line.text)) {
                             hodnota.hodnota = line.text
                             break
                         }
@@ -146,7 +146,7 @@ object FunkceSpinave {
             val temp = vzdalenosti.minOrNull() as Double
             val hodnota = hodnoty[vzdalenosti.indexOf(temp)]
             val temp2 = FunkceCiste.VzdalenostBodu(hodnota.bod!![0], hodnota.bod!![1])
-            if (DrzecTypu.ListTypu[hodnota.typ].JeTimtoTypem(line.text) && temp2 > temp && (hodnota.vzdalenost == null || hodnota.bodPred == null || hodnota.vzdalenost!! * (FunkceCiste.VzdalenostBodu(
+            if (hodnota.typ.instance.JeTimtoTypem(line.text) && temp2 > temp && (hodnota.vzdalenost == null || hodnota.bodPred == null || hodnota.vzdalenost!! * (FunkceCiste.VzdalenostBodu(
                     hodnota.bodPred!![0],
                     hodnota.bodPred!![1]
                 ) / temp2) > temp) && (chybiHodnota || hodnota.confidence < line.confidence)
@@ -159,11 +159,11 @@ object FunkceSpinave {
                     hodnota.confidence = 0.0f
                 }
             } else {
-                if (DrzecTypu.ListTypu[2].JeTimtoTypem(line.text)) {
+                if (Typy.DATUM.instance.JeTimtoTypem(line.text)) {
                     stranka.datum = line.text
                 } else if (!stranka.extraHodnoty.isEmpty()) {
                     for (hodnota in stranka.extraHodnoty) {
-                        if (hodnota.nazev == "" && DrzecTypu.ListTypu[hodnota.typ].JeTimtoTypem(line.text)) {
+                        if (hodnota.nazev == "" && hodnota.typ.instance.JeTimtoTypem(line.text)) {
                             hodnota.hodnota = line.text
                             break
                         }

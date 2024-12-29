@@ -6,32 +6,32 @@ import java.util.Date
 
 @Entity(tableName = "stranky")
 data class DBStranka(
-    @PrimaryKey(autoGenerate = true) val id: Int,
     val nazev: String,
-    val datum: Date
+    var datum: Date,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0
 )
 
 @Entity(tableName = "kotvy")
 data class DBKotva(
-    @PrimaryKey(autoGenerate = true) val id: Int,
-    val strankaId: Int,
-    val nazev: String
+    val strankaId: Long,
+    val nazev: String,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0
 )
 
 @Entity(tableName = "hodnoty")
 data class DBHodnota(
-    @PrimaryKey(autoGenerate = true) val id: Int,
-    val kotvaId: Int,
+    val kotvaId: Long,
     val nazev: String,
-    val hodnota: String,
-    val typ: Int
+    var hodnota: String,
+    val typ: Int,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0
 )
 
 @Entity(tableName = "hodnoty_extra")
 data class DBHodnotaExtra(
-    @PrimaryKey(autoGenerate = true) val id: Int,
-    val strankaId: Int,
+    val strankaId: Long,
     val nazev: String,
-    val hodnota: String,
-    val typ: Int
+    var hodnota: String,
+    val typ: Int,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0
 )

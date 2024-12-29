@@ -19,7 +19,7 @@ class Kotva(var nazev: String, var hodnoty: Array<Hodnota>) {
 }
 
 @Serializable
-class Hodnota(var nazev: String, var typ: Int = 0) {
+class Hodnota(var nazev: String, var typ: Typy = Typy.CISLO) {
     @Transient
     var bod: Array<android.graphics.Point>? = null
 

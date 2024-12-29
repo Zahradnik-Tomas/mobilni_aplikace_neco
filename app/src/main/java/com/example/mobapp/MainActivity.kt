@@ -66,6 +66,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         viewBinding = MainActivityBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
+        viewBinding.button2.setOnClickListener {
+            if (imageAnalyzerCam.Stranka() != null) {
+                val intent = Intent(this, VlozDoDBActivity::class.java).putExtra(
+                    getString(R.string.klic_json), Json.encodeToString(
+                        Stranka.serializer(), imageAnalyzerCam.Stranka()!!
+                    )
+                )
+                startActivity(intent)
+            }
+        }
     }
 
     override fun onResume() {
