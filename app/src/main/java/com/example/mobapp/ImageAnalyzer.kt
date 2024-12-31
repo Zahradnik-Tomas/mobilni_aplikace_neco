@@ -29,10 +29,7 @@ class ImageAnalyzerCam : ImageAnalysis.Analyzer {
             ).addOnSuccessListener { text ->
                 Log.i("ANALYZER", "Uspech")
                 if (stranka == null) {
-                    stranka = FunkceSpinave.VratDetekovanouStranku(text, stranky)
-                    if (stranka != null) {
-                        CacheRozparani.NastavCache(stranka!!)
-                    }
+                    NastavStranku(FunkceSpinave.VratDetekovanouStranku(text, stranky))
                 }
                 if (stranka != null) {
                     FunkceSpinave.ZpracujText(text, stranka!!)

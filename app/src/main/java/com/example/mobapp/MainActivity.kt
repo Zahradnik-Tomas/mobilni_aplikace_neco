@@ -76,6 +76,9 @@ class MainActivity : ComponentActivity() {
                 startActivity(intent)
             }
         }
+        viewBinding.button3.setOnClickListener {
+            startActivity(Intent(this, ZpracujDataActivity::class.java))
+        }
     }
 
     override fun onResume() {
@@ -125,6 +128,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun obstarejStranky() {
+        if (imageAnalyzerCam.Stranka() != null) {
+            return
+        }
         if (this.fileList().contains("templates.json")) {
             val temp = this.openFileInput(getString(R.string.soubor_templatu)).bufferedReader()
             imageAnalyzerCam.NastavStranky(

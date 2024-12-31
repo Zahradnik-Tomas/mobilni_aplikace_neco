@@ -1,6 +1,7 @@
 package com.example.mobapp.DB
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
@@ -20,13 +21,28 @@ interface StrankaDao {
     @Upsert
     fun insertHodnotaExtra(vararg hodnota: DBHodnotaExtra)
 
-    @Transaction
-    @Query("SELECT * FROM stranky")
-    fun vratVse(): List<strankaSKotvami>
+    @Delete
+    suspend fun delete(entita: DBStranka)
+
+    @Delete
+    suspend fun delete(entita: DBKotva)
+
+    @Delete
+    suspend fun delete(entita: DBHodnota)
+
+    @Delete
+    suspend fun delete(entita: DBHodnotaExtra)
 
     @Transaction
-    @Query("SELECT * FROM stranky WHERE datum BETWEEN :poDatu AND :predDatem")
-    fun vratVseMeziDaty(poDatu: Date, predDatem: Date): List<strankaSKotvami>
+    @Query("SELECT * FROM stranky ORDER BY datum DESC")
+    suspend fun vratVse(): List<strankaSKotvami>
 
+    @Transaction
+    @Query("SELECT * FROM stranky WHERE datum BETWEEN :poDatu AND :predDatem ORDER BY datum DESC")
+    suspend fun vratVseMeziDaty(poDatu: Date, predDatem: Date): List<strankaSKotvami>
+
+    @Transaction
+    @Query("DELETE FROM sqlite_sequence")
+    suspend fun smazSekvence()
 
 }

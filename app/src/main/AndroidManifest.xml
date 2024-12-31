@@ -34,7 +34,12 @@
             android:name=".InternetZiskejStranky"
             android:configChanges="keyboardHidden|orientation|screenSize" />
         <activity
+            android:theme="@android:style/Theme.Material.Light.DarkActionBar"
             android:name=".VlozDoDBActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:theme="@android:style/Theme.Material.Light.DarkActionBar"
+            android:name=".ZpracujDataActivity"
             android:configChanges="keyboardHidden|orientation|screenSize" />
     </application>
 

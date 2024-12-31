@@ -3,6 +3,7 @@ package com.example.mobapp
 import android.app.DatePickerDialog
 import android.content.Context
 import android.text.InputType
+import android.view.View
 import android.widget.EditText
 import androidx.core.text.isDigitsOnly
 import com.example.mobapp.DB.Converters
@@ -203,6 +204,7 @@ class TypDatum : TypyHodnot {
                 ).show()
             }
         }
+        temp.focusable = View.NOT_FOCUSABLE
         temp.inputType = InputType.TYPE_NULL
         return temp
     }

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    android:layout_marginTop="2dp"
+    android:id="@+id/relative_layout_db_entita_list">
+
+    <TextView
+        android:id="@+id/entita_nazev"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="16dp"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        />
+
+    <EditText
+        android:id="@+id/entita_hodnota"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:textSize="20sp"
+        android:layout_alignParentEnd="true"
+        android:background="@null"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="85dp"
+        />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/baseline_keyboard_arrow_right"
+        android:layout_marginEnd="16dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:id="@+id/entita_sipka_vpravo" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/baseline_keyboard_arrow_down"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="16dp"
+        android:layout_centerVertical="true"
+        android:id="@+id/entita_sipka_dolu"/>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/baseline_build"
+        android:layout_alignParentEnd="true"
+        android:background="?android:selectableItemBackground"
+        android:layout_marginEnd="16dp"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:layout_centerVertical="true"
+        android:id="@+id/entita_edit"
+        />
+
+</RelativeLayout>

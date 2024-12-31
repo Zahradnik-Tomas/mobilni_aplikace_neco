@@ -26,8 +26,7 @@ class Hodnota(var nazev: String, var typ: Typy = Typy.CISLO) {
     @Transient
     var bodPred: Array<android.graphics.Point>? = null
 
-    var hodnota =
-        "" //TODO def hodnota podle typu.... Jedinacek.ListTypu[typ].VratDefHodnotu <- typ je z interfacu
+    var hodnota = ""
 
     @Transient
     var confidence = 0.0f
