@@ -109,8 +109,11 @@ class RecyclerViewAdapterDBEntity(
 
     @SuppressLint("NotifyDataSetChanged")
     private fun SmazVybrane() {
-        for (item in vybrane.toList()) {
+        for (item in vybrane) {
             item.Smaz(strankaDao)
+            if (item.deti != null) {
+                RemoveData(item.deti, indexOf(item))
+            }
         }
         dataSet.removeAll(vybrane)
         vybrane.clear()
@@ -150,7 +153,7 @@ class RecyclerViewAdapterDBEntity(
     }
 
     private fun aktualizujTitle() {
-        if (vybrane.isEmpty) {
+        if (vybrane.isEmpty()) {
             ActionModeDBEntita.actionMode?.finish()
             return
         }
