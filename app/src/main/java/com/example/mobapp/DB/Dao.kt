@@ -10,16 +10,16 @@ import java.util.Date
 @Dao
 interface StrankaDao {
     @Upsert
-    fun insertStranka(stranka: DBStranka): Long
+    suspend fun insertStranka(stranka: DBStranka): Long
 
     @Upsert
-    fun insertKotva(kotva: DBKotva): Long
+    suspend fun insertKotva(kotva: DBKotva): Long
 
     @Upsert
-    fun insertHodnota(vararg hodnota: DBHodnota)
+    suspend fun insertHodnota(vararg hodnota: DBHodnota)
 
     @Upsert
-    fun insertHodnotaExtra(vararg hodnota: DBHodnotaExtra)
+    suspend fun insertHodnotaExtra(vararg hodnota: DBHodnotaExtra)
 
     @Delete
     suspend fun delete(entita: DBStranka)

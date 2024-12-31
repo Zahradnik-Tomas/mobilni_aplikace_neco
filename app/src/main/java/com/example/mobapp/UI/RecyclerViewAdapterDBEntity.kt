@@ -9,14 +9,27 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.mobapp.DB.StrankaDao
 import com.example.mobapp.R
+import com.example.mobapp.ZpracujDataActivity
 import com.example.mobapp.databinding.ZpracujDataActivityBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class RecyclerViewAdapterDBEntity(
     private var dataSet: ArrayList<RecyclerViewDBEntita>,
-    private val viewBinding: ZpracujDataActivityBinding
+    private val viewBinding: ZpracujDataActivityBinding,
+    private val activity: ZpracujDataActivity,
+    private val strankaDao: StrankaDao
 ) :
     RecyclerView.Adapter<RecyclerViewAdapterDBEntity.ViewHolder>() {
+
+    private val vybrane = ArrayList<RecyclerViewDBEntita>()
+
+    val mutex = Mutex()
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -39,7 +52,7 @@ class RecyclerViewAdapterDBEntity(
             holder.sipkaDolu,
             holder.sipkaVpravo,
             this,
-            position
+            activity
         )
     }
 
@@ -83,6 +96,65 @@ class RecyclerViewAdapterDBEntity(
         viewBinding.recycler.post {
             AddData(data, position)
         }
+    }
+
+    public fun smazVybrane() {
+        CoroutineScope(Dispatchers.IO).launch {
+            mutex.lock()
+            viewBinding.recycler.post {
+                SmazVybrane()
+            }
+        }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    private fun SmazVybrane() {
+        for (item in vybrane.toList()) {
+            item.Smaz(strankaDao)
+        }
+        dataSet.removeAll(vybrane)
+        vybrane.clear()
+        if (mutex.isLocked) {
+            mutex.unlock()
+        }
+        notifyDataSetChanged()
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public fun vycistiVybrane() {
+        CoroutineScope(Dispatchers.Main).launch {
+            mutex.withLock { ->
+                for (item in vybrane) {
+                    item.SetSelected(false)
+                    notifyDataSetChanged()
+                }
+                vybrane.clear()
+            }
+        }
+    }
+
+    public fun addToVybrane(item: RecyclerViewDBEntita) {
+        if (ActionModeDBEntita.actionMode == null) {
+            return
+        }
+        vybrane.add(item)
+        aktualizujTitle()
+    }
+
+    public fun removeFromVybrane(item: RecyclerViewDBEntita) {
+        if (ActionModeDBEntita.actionMode == null) {
+            return
+        }
+        vybrane.remove(item)
+        aktualizujTitle()
+    }
+
+    private fun aktualizujTitle() {
+        if (vybrane.isEmpty) {
+            ActionModeDBEntita.actionMode?.finish()
+            return
+        }
+        ActionModeDBEntita.actionMode?.title = vybrane.size.toString()
     }
 
     private fun AddData(

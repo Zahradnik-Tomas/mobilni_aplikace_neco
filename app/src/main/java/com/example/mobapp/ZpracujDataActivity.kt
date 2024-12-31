@@ -2,6 +2,7 @@ package com.example.mobapp
 
 import android.app.AlertDialog
 import android.os.Bundle
+import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.ComponentActivity
@@ -10,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
 import com.example.mobapp.DB.DB
 import com.example.mobapp.DB.StrankaDao
+import com.example.mobapp.UI.ActionModeDBEntita
 import com.example.mobapp.UI.RecyclerViewAdapterDBEntity
 import com.example.mobapp.UI.RecyclerViewDBEntita
 import com.example.mobapp.databinding.ZpracujDataActivityBinding
@@ -31,7 +33,8 @@ class ZpracujDataActivity : ComponentActivity() {
         setContentView(viewBinding.root)
         recyclerView = viewBinding.recycler
         recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = RecyclerViewAdapterDBEntity(ArrayList(), viewBinding)
+        recyclerView.adapter =
+            RecyclerViewAdapterDBEntity(ArrayList(), viewBinding, this, strankaDao)
         zobrazVsechnyData()
     }
 
@@ -89,5 +92,47 @@ class ZpracujDataActivity : ComponentActivity() {
         CoroutineScope(Dispatchers.Main).launch {
             (recyclerView.adapter as RecyclerViewAdapterDBEntity).setDataSet(data.await())
         }
+    }
+
+    val actionModeCallback = object : ActionMode.Callback {
+        override fun onCreateActionMode(
+            mode: ActionMode?,
+            menu: Menu?
+        ): Boolean {
+            mode?.menuInflater?.inflate(R.menu.zpracuj_data_action_mode_menu, menu)
+            return true
+        }
+
+        override fun onPrepareActionMode(
+            mode: ActionMode?,
+            menu: Menu?
+        ): Boolean {
+            return false
+        }
+
+        override fun onActionItemClicked(
+            mode: ActionMode?,
+            item: MenuItem?
+        ): Boolean {
+            return when (item?.itemId) {
+                R.id.smaz -> {
+                    AlertDialog.Builder(this@ZpracujDataActivity)
+                        .setMessage("Doopravdy chcete smazat vybrané položky?")
+                        .setPositiveButton("Ano") { dialog, id ->
+                            (recyclerView.adapter as RecyclerViewAdapterDBEntity).smazVybrane()
+                            mode?.finish()
+                        }.setNegativeButton("Ne") { dialog, id -> mode?.finish() }.create().show()
+                    true
+                }
+
+                else -> false
+            }
+        }
+
+        override fun onDestroyActionMode(mode: ActionMode?) {
+            ActionModeDBEntita.actionMode = null
+            (recyclerView.adapter as RecyclerViewAdapterDBEntity).vycistiVybrane()
+        }
+
     }
 }

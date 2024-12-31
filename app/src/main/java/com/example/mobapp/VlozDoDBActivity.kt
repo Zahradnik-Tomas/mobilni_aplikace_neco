@@ -15,11 +15,18 @@ import com.example.mobapp.DB.DBHodnota
 import com.example.mobapp.DB.DBHodnotaExtra
 import com.example.mobapp.DB.DBKotva
 import com.example.mobapp.DB.DBStranka
+import com.example.mobapp.DB.StrankaDao
 import com.example.mobapp.databinding.VlozDoDbActivityBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 
 class VlozDoDBActivity : ComponentActivity() {
     lateinit var db: DB
+    private val mutex = Mutex()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         db = Room.databaseBuilder(this, DB::class.java, getString(R.string.databaze_nazev)).build()
@@ -55,79 +62,89 @@ class VlozDoDBActivity : ComponentActivity() {
         table.addView(button)
         button.text = "Posli"
         button.setOnClickListener {
-            var pokracuj = true
-            var index = 1
-            if (!JeVyplnenoSpravne(extraHodnoty[0], Typy.DATUM)) {
+            CoroutineScope(Dispatchers.IO).launch {
+                mutex.withLock { ->
+                    Klik(extraHodnoty, stranka, hodnoty, strankaDao)
+                }
+            }
+        }
+    }
+
+    private suspend fun Klik(
+        extraHodnoty: ArrayList<EditText>,
+        stranka: Stranka,
+        hodnoty: ArrayList<EditText>,
+        strankaDao: StrankaDao
+    ) {
+        var pokracuj = true
+        var index = 1
+        if (!JeVyplnenoSpravne(extraHodnoty[0], Typy.DATUM)) {
+            pokracuj = false
+        }
+        for (hodnotaExtra in stranka.extraHodnoty) {
+            if (!JeVyplnenoSpravne(extraHodnoty[index], hodnotaExtra.typ)) {
                 pokracuj = false
             }
-            for (hodnotaExtra in stranka.extraHodnoty) {
-                if (!JeVyplnenoSpravne(extraHodnoty[index], hodnotaExtra.typ)) {
+            index += 1
+        }
+        index = 0
+        for (kotva in stranka.kotvy) {
+            for (hodnota in kotva.hodnoty) {
+                if (!JeVyplnenoSpravne(hodnoty[index], hodnota.typ)) {
                     pokracuj = false
                 }
                 index += 1
             }
+        }
+        if (pokracuj) {
+            val strankaId = strankaDao.insertStranka(
+                DBStranka(
+                    stranka.nazev,
+                    Converters.fromString(extraHodnoty[0].text.toString())!!
+                )
+            )
+            index = 1
+            for (hodnotaExtra in stranka.extraHodnoty) {
+                var hodnota = ""
+                if (hodnotaExtra.typ == Typy.PROCENTO || hodnotaExtra.typ == Typy.DECIMAL) {
+                    hodnota = extraHodnoty[index].text.toString().replace(",", ".")
+                        .removeSuffix("%")
+                } else {
+                    hodnota = extraHodnoty[index].text.toString()
+                }
+                index += 1
+                strankaDao.insertHodnotaExtra(
+                    DBHodnotaExtra(
+                        strankaId,
+                        hodnotaExtra.nazev,
+                        hodnota,
+                        hodnotaExtra.typ.typ
+                    )
+                )
+            }
             index = 0
             for (kotva in stranka.kotvy) {
+                val kotvaId = strankaDao.insertKotva(DBKotva(strankaId, kotva.nazev))
                 for (hodnota in kotva.hodnoty) {
-                    if (!JeVyplnenoSpravne(hodnoty[index], hodnota.typ)) {
-                        pokracuj = false
+                    var item = ""
+                    if (hodnota.typ == Typy.PROCENTO || hodnota.typ == Typy.DECIMAL) {
+                        item = hodnoty[index].text.toString().replace(",", ".")
+                            .removeSuffix("%")
+                    } else {
+                        item = hodnoty[index].text.toString()
                     }
                     index += 1
-                }
-            }
-            if (pokracuj) {
-                val thread = Thread {
-                    val strankaId = strankaDao.insertStranka(
-                        DBStranka(
-                            stranka.nazev,
-                            Converters.fromString(extraHodnoty[0].text.toString())!!
+                    strankaDao.insertHodnota(
+                        DBHodnota(
+                            kotvaId,
+                            hodnota.nazev,
+                            item,
+                            hodnota.typ.typ
                         )
                     )
-                    index = 1
-                    for (hodnotaExtra in stranka.extraHodnoty) {
-                        var hodnota = ""
-                        if (hodnotaExtra.typ == Typy.PROCENTO || hodnotaExtra.typ == Typy.DECIMAL) {
-                            hodnota = extraHodnoty[index].text.toString().replace(",", ".")
-                                .removeSuffix("%")
-                        } else {
-                            hodnota = extraHodnoty[index].text.toString()
-                        }
-                        index += 1
-                        strankaDao.insertHodnotaExtra(
-                            DBHodnotaExtra(
-                                strankaId,
-                                hodnotaExtra.nazev,
-                                hodnota,
-                                hodnotaExtra.typ.typ
-                            )
-                        )
-                    }
-                    index = 0
-                    for (kotva in stranka.kotvy) {
-                        val kotvaId = strankaDao.insertKotva(DBKotva(strankaId, kotva.nazev))
-                        for (hodnota in kotva.hodnoty) {
-                            var item = ""
-                            if (hodnota.typ == Typy.PROCENTO || hodnota.typ == Typy.DECIMAL) {
-                                item = hodnoty[index].text.toString().replace(",", ".")
-                                    .removeSuffix("%")
-                            } else {
-                                item = hodnoty[index].text.toString()
-                            }
-                            index += 1
-                            strankaDao.insertHodnota(
-                                DBHodnota(
-                                    kotvaId,
-                                    hodnota.nazev,
-                                    item,
-                                    hodnota.typ.typ
-                                )
-                            )
-                        }
-                    }
-                    finish()
                 }
-                thread.start()
             }
+            finish()
         }
     }
 

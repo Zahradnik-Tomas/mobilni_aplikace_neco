@@ -1,5 +1,6 @@
 package com.example.mobapp.UI
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.text.InputType
 import android.view.View
@@ -19,6 +20,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.mobapp.R
+import com.example.mobapp.ZpracujDataActivity
 
 class RecyclerViewDBEntita(
     val entita: DBEntita,
@@ -32,6 +34,7 @@ class RecyclerViewDBEntita(
     val hodnota: String?
     var typ: Typy? = null
     var expanded = false
+    var selected = false
 
     init {
         if (entita is DBHodnota) {
@@ -84,7 +87,7 @@ class RecyclerViewDBEntita(
         sipkaDolu: ImageView,
         sipkaVpravo: ImageView,
         recyclerViewAdapterDBEntity: RecyclerViewAdapterDBEntity,
-        position: Int
+        activity: ZpracujDataActivity
     ) {
         view.setBackgroundColor(barva)
         view.setOnClickListener(null)
@@ -98,9 +101,16 @@ class RecyclerViewDBEntita(
         hodnota.focusable = View.NOT_FOCUSABLE
         hodnota.inputType = InputType.TYPE_NULL
         hodnota.setOnClickListener(null)
+        setSelected(this.selected, view, activity)
         if (deletable) {
-            hodnota.setOnClickListener {
-                HandleClickExpand(sipkaDolu, sipkaVpravo, recyclerViewAdapterDBEntity)
+            view.setOnLongClickListener { view ->
+                setSelected(true, view, activity)
+                if (ActionModeDBEntita.actionMode == null) {
+                    ActionModeDBEntita.actionMode =
+                        activity.startActionMode(activity.actionModeCallback)
+                }
+                recyclerViewAdapterDBEntity.addToVybrane(this)
+                true
             }
         }
         if (editable) {
@@ -112,7 +122,22 @@ class RecyclerViewDBEntita(
         sipkaVpravo.visibility = View.GONE
         if (expandable) {
             view.setOnClickListener {
-                HandleClickExpand(sipkaDolu, sipkaVpravo, recyclerViewAdapterDBEntity)
+                if (selected) {
+                    selected = false
+                    setSelected(selected, view, activity)
+                    recyclerViewAdapterDBEntity.removeFromVybrane(this)
+                } else {
+                    HandleClickExpand(sipkaDolu, sipkaVpravo, recyclerViewAdapterDBEntity)
+                }
+            }
+            hodnota.setOnClickListener {
+                if (selected) {
+                    selected = false
+                    setSelected(selected, view, activity)
+                    recyclerViewAdapterDBEntity.removeFromVybrane(this)
+                } else {
+                    HandleClickExpand(sipkaDolu, sipkaVpravo, recyclerViewAdapterDBEntity)
+                }
             }
             if (expanded) {
                 sipkaDolu.visibility = View.VISIBLE
@@ -120,6 +145,20 @@ class RecyclerViewDBEntita(
                 sipkaVpravo.visibility = View.VISIBLE
             }
         }
+    }
+
+    @SuppressLint("UseCompatLoadingForDrawables")
+    private fun setSelected(boolean: Boolean, view: View, activity: ZpracujDataActivity) {
+        this.selected = boolean
+        if (selected) {
+            view.foreground = activity.getDrawable(R.drawable.border)
+        } else {
+            view.foreground = null
+        }
+    }
+
+    public fun SetSelected(boolean: Boolean) {
+        this.selected = boolean
     }
 
     public fun HandleClickExpand(
