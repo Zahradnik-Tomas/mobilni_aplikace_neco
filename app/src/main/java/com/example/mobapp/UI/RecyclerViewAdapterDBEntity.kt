@@ -111,7 +111,7 @@ class RecyclerViewAdapterDBEntity(
     private fun SmazVybrane() {
         for (item in vybrane) {
             item.Smaz(strankaDao)
-            if (item.deti != null) {
+            if (item.expanded && item.deti != null) {
                 RemoveData(item.deti, indexOf(item))
             }
         }
