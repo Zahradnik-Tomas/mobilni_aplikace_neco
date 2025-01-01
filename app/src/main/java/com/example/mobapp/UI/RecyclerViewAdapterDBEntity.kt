@@ -60,8 +60,14 @@ class RecyclerViewAdapterDBEntity(
         return dataSet.size
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     public fun setDataSet(dataSet: ArrayList<RecyclerViewDBEntita>) {
+        viewBinding.recycler.post {
+            SetDataSet(dataSet)
+        }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    private fun SetDataSet(dataSet: ArrayList<RecyclerViewDBEntita>) {
         this.dataSet = dataSet
         notifyDataSetChanged()
     }

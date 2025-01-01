@@ -34,12 +34,38 @@ interface StrankaDao {
     suspend fun delete(entita: DBHodnotaExtra)
 
     @Transaction
-    @Query("SELECT * FROM stranky ORDER BY datum DESC")
-    suspend fun vratVse(): List<strankaSKotvami>
+    @Query("SELECT * FROM stranky WHERE nazev LIKE :jako ORDER BY CASE WHEN :desc = 1 THEN datum END DESC, CASE WHEN :desc = 0 THEN datum END ASC")
+    suspend fun vratVse(jako: String = "%", desc: Boolean = true): List<strankaSKotvami>
+
 
     @Transaction
-    @Query("SELECT * FROM stranky WHERE datum BETWEEN :poDatu AND :predDatem ORDER BY datum DESC")
-    suspend fun vratVseMeziDaty(poDatu: Date, predDatem: Date): List<strankaSKotvami>
+    @Query("SELECT * FROM stranky WHERE datum BETWEEN :poDatu AND :predDatem AND nazev LIKE :jako ORDER BY CASE WHEN :desc = 1 THEN datum END DESC, CASE WHEN :desc = 0 THEN datum END ASC")
+    suspend fun vratVseMeziDaty(
+        poDatu: Date,
+        predDatem: Date,
+        jako: String = "%",
+        desc: Boolean = true
+    ): List<strankaSKotvami>
+
+    @Transaction
+    @Query("SELECT * FROM stranky WHERE datum >= :poDatu AND nazev LIKE :jako ORDER BY CASE WHEN :desc = 1 THEN datum END DESC, CASE WHEN :desc = 0 THEN datum END ASC")
+    suspend fun vratVsePoDatu(
+        poDatu: Date,
+        jako: String = "%",
+        desc: Boolean = true
+    ): List<strankaSKotvami>
+
+    @Transaction
+    @Query("SELECT * FROM stranky WHERE datum <= :predDatem AND nazev LIKE :jako ORDER BY CASE WHEN :desc = 1 THEN datum END DESC, CASE WHEN :desc = 0 THEN datum END ASC")
+    suspend fun vratVsePredDatem(
+        predDatem: Date,
+        jako: String = "%",
+        desc: Boolean = true
+    ): List<strankaSKotvami>
+
+    @Transaction
+    @Query("SELECT * FROM stranky WHERE id IN (SELECT MAX(id) FROM stranky GROUP BY nazev)")
+    suspend fun vratNejnovKostryStranek(): List<strankaSKotvami>
 
     @Transaction
     @Query("DELETE FROM sqlite_sequence")

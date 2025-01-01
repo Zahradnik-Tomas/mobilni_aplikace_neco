@@ -1,8 +1,10 @@
 package com.example.mobapp.DB
 
 import androidx.room.TypeConverter
+import com.example.mobapp.Typy
 import java.util.Calendar
 import java.util.Date
+import java.util.TimeZone
 
 class Converters {
     @TypeConverter
@@ -17,21 +19,20 @@ class Converters {
 
     companion object {
         fun fromString(value: String): Date? {
-            val temp = value.split(".")
-            if (temp.size != 3) {
+            if (!Typy.DATUM.instance.JeTimtoTypem(value)) {
                 return null
             }
+            val temp = value.split(".")
             val calendar = Calendar.getInstance()
+            calendar.timeZone = TimeZone.getTimeZone("GMT")
+            calendar.clear()
             calendar.set(temp[2].toInt(), temp[1].toInt() - 1, temp[0].toInt())
-            calendar.clear(Calendar.HOUR)
-            calendar.clear(Calendar.MINUTE)
-            calendar.clear(Calendar.SECOND)
-            calendar.clear(Calendar.MILLISECOND)
             return calendar.time
         }
 
         fun dateToString(date: Date): String {
             val calendar = Calendar.getInstance()
+            calendar.timeZone = TimeZone.getTimeZone("GMT")
             calendar.time = date
             var den = calendar.get(Calendar.DAY_OF_MONTH).toString()
             if (den.length == 1) {

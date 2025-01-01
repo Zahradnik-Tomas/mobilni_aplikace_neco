@@ -16,6 +16,7 @@ interface TypyHodnot {
     fun VratDefHodnotu(): String
     fun JeTimtoTypem(str: String): Boolean
     fun VratView(context: Context, hodnota: String): EditText
+    fun ZpracujView(view: EditText, context: Context)
 }
 
 @Serializable
@@ -58,6 +59,11 @@ class TypText : TypyHodnot {
         }
         return temp
     }
+
+    override fun ZpracujView(view: EditText, context: Context) {
+        view.focusable = View.FOCUSABLE
+        view.inputType = InputType.TYPE_CLASS_TEXT
+    }
 }
 
 class TypCislo : TypyHodnot {
@@ -78,6 +84,11 @@ class TypCislo : TypyHodnot {
             temp.setText(hodnota)
         }
         return temp
+    }
+
+    override fun ZpracujView(view: EditText, context: Context) {
+        view.focusable = View.FOCUSABLE
+        view.inputType = InputType.TYPE_CLASS_NUMBER
     }
 }
 
@@ -104,6 +115,11 @@ class TypDecimal : TypyHodnot {
         }
         return temp
     }
+
+    override fun ZpracujView(view: EditText, context: Context) {
+        view.focusable = View.FOCUSABLE
+        view.inputType = InputType.TYPE_NUMBER_FLAG_DECIMAL
+    }
 }
 
 class TypProcento : TypyHodnot {
@@ -128,6 +144,11 @@ class TypProcento : TypyHodnot {
             temp.setText(hodnota)
         }
         return temp
+    }
+
+    override fun ZpracujView(view: EditText, context: Context) {
+        view.focusable = View.FOCUSABLE
+        view.inputType = InputType.TYPE_NUMBER_FLAG_DECIMAL
     }
 }
 
@@ -182,31 +203,45 @@ class TypDatum : TypyHodnot {
 
     override fun VratView(context: Context, hodnota: String): EditText {
         val temp = EditText(context)
-        if (!hodnota.isEmpty()) {
+        if (JeTimtoTypem(hodnota)) {
             temp.setText(hodnota)
         } else {
             temp.setText(VratDefHodnotu())
         }
-        val listener = DatePickerDialog.OnDateSetListener { datePicker, year, month, day ->
-            val calendar = Calendar.getInstance()
-            calendar.set(year, month, day)
-            temp.setText(Converters.dateToString(calendar.time))
-        }
-        temp.setOnClickListener {
-            val hodnoty = temp.text.toString().split(".")
-            if (hodnoty.size == 3) {
-                DatePickerDialog(
-                    context,
-                    listener,
-                    hodnoty[2].toInt(),
-                    hodnoty[1].toInt() - 1,
-                    hodnoty[0].toInt()
-                ).show()
-            }
-        }
+        setniDatumPopUp(temp, context)
         temp.focusable = View.NOT_FOCUSABLE
         temp.inputType = InputType.TYPE_NULL
         return temp
+    }
+
+    override fun ZpracujView(view: EditText, context: Context) {
+        view.focusable = View.NOT_FOCUSABLE
+        view.inputType = InputType.TYPE_NULL
+        setniDatumPopUp(view, context)
+    }
+
+    private fun setniDatumPopUp(view: EditText, context: Context) {
+        val listener = DatePickerDialog.OnDateSetListener { datePicker, year, month, day ->
+            val calendar = Calendar.getInstance()
+            calendar.set(year, month, day)
+            view.setText(Converters.dateToString(calendar.time))
+        }
+        view.setOnClickListener {
+            val hodnoty: List<String>
+            if (JeTimtoTypem(view.text.toString())) {
+                hodnoty = view.text.toString().split(".")
+
+            } else {
+                hodnoty = VratDefHodnotu().split(".")
+            }
+            DatePickerDialog(
+                context,
+                listener,
+                hodnoty[2].toInt(),
+                hodnoty[1].toInt() - 1,
+                hodnoty[0].toInt()
+            ).show()
+        }
     }
 }
 
@@ -232,5 +267,10 @@ class TypFrakce : TypyHodnot {
             temp.setText(hodnota)
         }
         return temp
+    }
+
+    override fun ZpracujView(view: EditText, context: Context) {
+        view.focusable = View.FOCUSABLE
+        view.inputType = InputType.TYPE_CLASS_TEXT
     }
 }
