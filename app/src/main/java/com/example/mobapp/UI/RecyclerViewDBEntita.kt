@@ -62,7 +62,7 @@ class RecyclerViewDBEntita(
                 }
             }
         } else if (entita is DBHodnotaExtra) {
-            barva = Color.GRAY
+            barva = Color.DKGRAY
             editable = true
             deletable = false
             expandable = false

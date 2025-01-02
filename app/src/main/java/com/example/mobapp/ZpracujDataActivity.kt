@@ -336,10 +336,12 @@ class ZpracujDataActivity : AppCompatActivity() {
         ): Boolean {
             return when (item?.itemId) {
                 R.id.agregujEntity -> {
-                    typAgr = null
                     (recyclerView.adapter as RecyclerViewAdapterDBEntity).vycistiVybraneAgr()
                     val temp = CoroutineScope(Dispatchers.IO).async {
                         for (item in (recyclerView.adapter as RecyclerViewAdapterDBEntity).vybraneAgr) {
+                            if(typAgr == null){
+                                break
+                            }
                             val hodnota: String
                             if (Typy.DATUM.instance.JeTimtoTypem(datumDo) && Typy.DATUM.instance.JeTimtoTypem(
                                     datumOd
@@ -404,6 +406,7 @@ class ZpracujDataActivity : AppCompatActivity() {
                         temp.await()
                         recyclerView.adapter?.notifyDataSetChanged()
                         ActionModeDBEntita.actionMode?.finish()
+                        typAgr = null
                     }
                     true
                 }
