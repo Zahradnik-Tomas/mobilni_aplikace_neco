@@ -118,6 +118,7 @@ class RecyclerViewDBEntita(
         }
         hodnota.focusable = View.NOT_FOCUSABLE
         hodnota.inputType = InputType.TYPE_NULL
+        hodnota.setOnClickListener(null)
         setSelected(this.selected, view, activity)
         if (deletable) {
             view.setOnLongClickListener { view ->
