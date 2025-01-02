@@ -28,6 +28,7 @@ class RecyclerViewAdapterDBEntity(
     RecyclerView.Adapter<RecyclerViewAdapterDBEntity.ViewHolder>() {
 
     private val vybrane = ArrayList<RecyclerViewDBEntita>()
+    public val vybraneAgr = ArrayList<RecyclerViewDBEntita>()
 
     val mutex = Mutex()
 
@@ -135,11 +136,53 @@ class RecyclerViewAdapterDBEntity(
             mutex.withLock { ->
                 for (item in vybrane) {
                     item.SetSelected(false)
-                    notifyDataSetChanged()
                 }
+                notifyDataSetChanged()
                 vybrane.clear()
             }
         }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public fun vycistiVybraneAgr() {
+        for (item in dataSet.toList()) {
+            if (!item.strankaNazev.isEmpty() && item.kotvaNazev.isEmpty()) {
+                if (item.deti == null) {
+                    dataSet.remove(item)
+                    continue
+                }
+                var selected = false
+                for (kotva in item.deti.toList()) {
+                    var selectedKotv = false
+                    kotva.deti?.let {
+                        for (hodnota in kotva.deti.toList()) {
+                            if (hodnota.selected) {
+                                selected = true
+                                selectedKotv = true
+                                hodnota.SetSelected(false)
+                                hodnota.selectable = false
+                            } else {
+                                vybraneAgr.remove(hodnota)
+                                dataSet.remove(hodnota)
+                                kotva.deti.remove(hodnota)
+                            }
+                        }
+                        if (!selectedKotv) {
+                            removeData(kotva.deti, indexOf(kotva))
+                        }
+                    }
+                    if (!selectedKotv) {
+                        dataSet.remove(kotva)
+                        item.deti.remove(kotva)
+                    }
+                }
+                if (!selected) {
+                    removeData(item.deti, indexOf(item))
+                    dataSet.remove(item)
+                }
+            }
+        }
+        notifyDataSetChanged()
     }
 
     public fun addToVybrane(item: RecyclerViewDBEntita) {
@@ -150,6 +193,14 @@ class RecyclerViewAdapterDBEntity(
         aktualizujTitle()
     }
 
+    public fun addToVybraneAgr(item: RecyclerViewDBEntita) {
+        if (ActionModeDBEntita.actionMode == null) {
+            return
+        }
+        vybraneAgr.add(item)
+        aktualizujTitle(vybraneAgr, false)
+    }
+
     public fun removeFromVybrane(item: RecyclerViewDBEntita) {
         if (ActionModeDBEntita.actionMode == null) {
             return
@@ -158,12 +209,23 @@ class RecyclerViewAdapterDBEntity(
         aktualizujTitle()
     }
 
-    private fun aktualizujTitle() {
-        if (vybrane.isEmpty()) {
+    public fun removeFromVybraneAgr(item: RecyclerViewDBEntita) {
+        if (ActionModeDBEntita.actionMode == null) {
+            return
+        }
+        vybraneAgr.remove(item)
+        aktualizujTitle(vybraneAgr, false)
+    }
+
+    private fun aktualizujTitle(
+        listVybr: ArrayList<RecyclerViewDBEntita> = this.vybrane,
+        konciSNulou: Boolean = true
+    ) {
+        if (listVybr.isEmpty() && konciSNulou) {
             ActionModeDBEntita.actionMode?.finish()
             return
         }
-        ActionModeDBEntita.actionMode?.title = vybrane.size.toString()
+        ActionModeDBEntita.actionMode?.title = listVybr.size.toString()
     }
 
     private fun AddData(

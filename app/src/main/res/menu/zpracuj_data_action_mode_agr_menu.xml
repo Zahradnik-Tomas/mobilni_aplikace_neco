@@ -2,8 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/smaz"
-        android:icon="@drawable/baseline_delete"
-        android:title="Smazat Vybrané Položky"
+        android:id="@+id/agregujEntity"
+        android:icon="@drawable/baseline_done"
+        android:title="Dokončit selekci"
         app:showAsAction="always" />
 </menu>

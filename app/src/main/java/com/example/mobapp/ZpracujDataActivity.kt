@@ -1,15 +1,18 @@
 package com.example.mobapp
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.Dialog
 import android.os.Bundle
 import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
-import androidx.activity.ComponentActivity
+import android.widget.Spinner
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
@@ -27,7 +30,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.util.Date
 
-class ZpracujDataActivity : ComponentActivity() {
+class ZpracujDataActivity : AppCompatActivity() {
     private lateinit var viewBinding: ZpracujDataActivityBinding
     private lateinit var db: DB
     private lateinit var strankaDao: StrankaDao
@@ -42,12 +45,17 @@ class ZpracujDataActivity : ComponentActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter =
             RecyclerViewAdapterDBEntity(ArrayList(), viewBinding, this, strankaDao)
-        zobrazVsechnyData(desc = desc)
+        zobrazVsechnyData(
+            Converters.fromString(datumDo),
+            Converters.fromString(datumOd),
+            desc = this.desc
+        )
     }
 
     private var datumOd = ""
     private var datumDo = ""
     private var desc = true
+    private var typAgr: AgrFunkce? = null
 
     override fun onDestroy() {
         db.close()
@@ -97,6 +105,8 @@ class ZpracujDataActivity : ComponentActivity() {
                 val filterText = view.findViewById<EditText>(R.id.filtraceStranka)
                 val okButton = view.findViewById<Button>(R.id.filtraceOkButton)
                 okButton.setOnClickListener {
+                    datumOd = editDatumOd.text.toString()
+                    datumDo = editDatumDo.text.toString()
                     dialog.dismiss()
                     zobrazVsechnyData(
                         Converters.fromString(editDatumDo.text.toString()),
@@ -105,11 +115,47 @@ class ZpracujDataActivity : ComponentActivity() {
                         this.desc
                     )
                 }
-                dialog.setOnDismissListener {
-                    datumOd = editDatumOd.text.toString()
-                    datumDo = editDatumDo.text.toString()
+                dialog.show()
+                return true
+            }
+
+            R.id.agregujdb -> {
+                val view =
+                    layoutInflater.inflate(R.layout.db_entita_agregace, viewBinding.root, false)
+                val dialog = Dialog(this)
+                dialog.setContentView(view)
+                val spinner = view.findViewById<Spinner>(R.id.spinnerSumFuncke)
+                val okButton = view.findViewById<Button>(R.id.agregaceOkButton)
+                val hodnotySpinneru = Array<String>(AgrFunkce.entries.size) { "" }
+                for (i in AgrFunkce.entries.indices) {
+                    hodnotySpinneru[i] = AgrFunkce.entries[i].nazev
+                }
+                ArrayAdapter(
+                    this,
+                    android.R.layout.simple_spinner_item,
+                    hodnotySpinneru
+                ).also { adapter ->
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_item)
+                    spinner.adapter = adapter
+                }
+                spinner.setSelection(0)
+                okButton.setOnClickListener {
+                    dialog.dismiss()
+                    typAgr = AgrFunkce.entries[spinner.selectedItemPosition]
+                    ActionModeDBEntita.actionMode?.finish()
+                    zobrazKostruAgregacni(typAgr!!.kompTypy)
+                    ActionModeDBEntita.actionMode = startActionMode(actionModeCallbackAgr)
                 }
                 dialog.show()
+                return true
+            }
+
+            R.id.reloaddb -> {
+                datumOd = ""
+                datumDo = ""
+                typAgr = null
+                ActionModeDBEntita.actionMode?.finish()
+                zobrazVsechnyData(desc = desc)
                 return true
             }
         }
@@ -147,6 +193,57 @@ class ZpracujDataActivity : ComponentActivity() {
         }
         CoroutineScope(Dispatchers.Main).launch {
             (recyclerView.adapter as RecyclerViewAdapterDBEntity).setDataSet(data.await())
+        }
+    }
+
+    private fun zobrazKostruAgregacni(typy: List<Typy>) {
+        val temp = CoroutineScope(Dispatchers.IO).async {
+            if (Typy.DATUM.instance.JeTimtoTypem(datumDo) && Typy.DATUM.instance.JeTimtoTypem(
+                    datumOd
+                )
+            ) {
+                strankaDao.vratNejnovKostryStranekMeziDaty(
+                    Converters.fromString(datumOd)!!,
+                    Converters.fromString(datumDo)!!
+                )
+            } else if (Typy.DATUM.instance.JeTimtoTypem(datumDo)) {
+                strankaDao.vratNejnovKostryStranekPredDatem(Converters.fromString(datumDo)!!)
+            } else if (Typy.DATUM.instance.JeTimtoTypem(datumOd)) {
+                strankaDao.vratNejnovKostryStranekPoDatu(Converters.fromString(datumOd)!!)
+            } else {
+                strankaDao.vratNejnovKostryStranek()
+            }
+        }
+        CoroutineScope(Dispatchers.Main).launch {
+            val kostry = temp.await()
+            val dataSet = ArrayList<RecyclerViewDBEntita>()
+            for (stranka in kostry) {
+                val stran = ArrayList<RecyclerViewDBEntita>()
+                for (kotva in stranka.kotvy) {
+                    val kot = ArrayList<RecyclerViewDBEntita>()
+                    for (hodnota in kotva.hodnoty) {
+                        for (typ in typy) {
+                            if (hodnota.typ == typ.typ) {
+                                kot.add(
+                                    RecyclerViewDBEntita(
+                                        hodnota,
+                                        strankaNazev = stranka.stranka.nazev,
+                                        kotvaNazev = kotva.kotva.nazev
+                                    )
+                                )
+                                break
+                            }
+                        }
+                    }
+                    if (!kot.isEmpty()) {
+                        stran.add(RecyclerViewDBEntita(kotva.kotva, kot))
+                    }
+                }
+                if (!stran.isEmpty()) {
+                    dataSet.add(RecyclerViewDBEntita(stranka.stranka, stran, stranka.stranka.nazev))
+                }
+            }
+            (recyclerView.adapter as RecyclerViewAdapterDBEntity).setDataSet(dataSet)
         }
     }
 
@@ -210,4 +307,115 @@ class ZpracujDataActivity : ComponentActivity() {
         }
 
     }
+
+    val actionModeCallbackAgr = object : ActionMode.Callback {
+        override fun onCreateActionMode(
+            mode: ActionMode?,
+            menu: Menu?
+        ): Boolean {
+            if (typAgr == null) {
+                mode?.finish()
+                return false
+            }
+            mode?.menuInflater?.inflate(R.menu.zpracuj_data_action_mode_agr_menu, menu)
+            (recyclerView.adapter as RecyclerViewAdapterDBEntity).vybraneAgr.clear()
+            return true
+        }
+
+        override fun onPrepareActionMode(
+            mode: ActionMode?,
+            menu: Menu?
+        ): Boolean {
+            return false
+        }
+
+        @SuppressLint("NotifyDataSetChanged")
+        override fun onActionItemClicked(
+            mode: ActionMode?,
+            item: MenuItem?
+        ): Boolean {
+            return when (item?.itemId) {
+                R.id.agregujEntity -> {
+                    typAgr = null
+                    (recyclerView.adapter as RecyclerViewAdapterDBEntity).vycistiVybraneAgr()
+                    val temp = CoroutineScope(Dispatchers.IO).async {
+                        for (item in (recyclerView.adapter as RecyclerViewAdapterDBEntity).vybraneAgr) {
+                            val hodnota: String
+                            if (Typy.DATUM.instance.JeTimtoTypem(datumDo) && Typy.DATUM.instance.JeTimtoTypem(
+                                    datumOd
+                                )
+                            ) {
+                                if (typAgr == AgrFunkce.SUM) {
+                                    hodnota = strankaDao.vratSUMMeziDaty(
+                                        item.strankaNazev, item.kotvaNazev, item.nazev,
+                                        Converters.fromString(datumOd)!!,
+                                        Converters.fromString(datumDo)!!
+                                    ).toString()
+                                } else {
+                                    hodnota = strankaDao.vratAVGMeziDaty(
+                                        item.strankaNazev, item.kotvaNazev, item.nazev,
+                                        Converters.fromString(datumOd)!!,
+                                        Converters.fromString(datumDo)!!
+                                    ).toString()
+                                }
+                            } else if (Typy.DATUM.instance.JeTimtoTypem(datumDo)) {
+                                if (typAgr == AgrFunkce.SUM) {
+                                    hodnota = strankaDao.vratSUMPredDatem(
+                                        item.strankaNazev, item.kotvaNazev, item.nazev,
+                                        Converters.fromString(datumDo)!!
+                                    ).toString()
+                                } else {
+                                    hodnota = strankaDao.vratAVGPredDatem(
+                                        item.strankaNazev, item.kotvaNazev, item.nazev,
+                                        Converters.fromString(datumDo)!!
+                                    ).toString()
+                                }
+                            } else if (Typy.DATUM.instance.JeTimtoTypem(datumOd)) {
+                                if (typAgr == AgrFunkce.SUM) {
+                                    hodnota = strankaDao.vratSUMPoDatu(
+                                        item.strankaNazev, item.kotvaNazev, item.nazev,
+                                        Converters.fromString(datumOd)!!
+                                    ).toString()
+                                } else {
+                                    hodnota = strankaDao.vratAVGPoDatu(
+                                        item.strankaNazev, item.kotvaNazev, item.nazev,
+                                        Converters.fromString(datumOd)!!
+                                    ).toString()
+                                }
+                            } else {
+                                if (typAgr == AgrFunkce.SUM) {
+                                    hodnota = strankaDao.vratSUM(
+                                        item.strankaNazev,
+                                        item.kotvaNazev,
+                                        item.nazev
+                                    ).toString()
+                                } else {
+                                    hodnota = strankaDao.vratAVG(
+                                        item.strankaNazev,
+                                        item.kotvaNazev,
+                                        item.nazev
+                                    ).toString()
+                                }
+                            }
+                            item.hodnota = hodnota
+                        }
+                    }
+                    CoroutineScope(Dispatchers.Main).launch {
+                        temp.await()
+                        recyclerView.adapter?.notifyDataSetChanged()
+                        ActionModeDBEntita.actionMode?.finish()
+                    }
+                    true
+                }
+
+                else -> false
+            }
+        }
+
+        override fun onDestroyActionMode(mode: ActionMode?) {
+            ActionModeDBEntita.actionMode = null
+        }
+
+    }
+
 }

@@ -24,26 +24,38 @@ import com.example.mobapp.ZpracujDataActivity
 
 class RecyclerViewDBEntita(
     val entita: DBEntita,
-    val deti: ArrayList<RecyclerViewDBEntita>? = null
+    val deti: ArrayList<RecyclerViewDBEntita>? = null,
+    val strankaNazev: String = "",
+    val kotvaNazev: String = ""
 ) {
     val barva: Int
     val editable: Boolean
     val deletable: Boolean
     val expandable: Boolean
     val nazev: String
-    val hodnota: String?
+    var hodnota: String?
     var typ: Typy? = null
     var expanded = false
     var selected = false
+    var selectable = false
 
     init {
         if (entita is DBHodnota) {
             barva = Color.GRAY
-            editable = true
+            if (!strankaNazev.isEmpty()) {
+                if (kotvaNazev.isEmpty()) {
+                    throw IllegalArgumentException("Nazev kotvy je prazdny")
+                }
+                editable = false
+                hodnota = ""
+                selectable = true
+            } else {
+                editable = true
+                hodnota = entita.hodnota
+            }
             deletable = false
             expandable = false
             nazev = entita.nazev
-            hodnota = entita.hodnota
             for (Typ in Typy.entries) {
                 if (Typ.typ == entita.typ) {
                     this.typ = Typ
@@ -71,10 +83,15 @@ class RecyclerViewDBEntita(
         } else {
             barva = R.color.sediva
             editable = false
-            deletable = true
-            expandable = true
             nazev = (entita as DBStranka).nazev
-            hodnota = Converters.dateToString(entita.datum)
+            if (!strankaNazev.isEmpty()) {
+                deletable = false
+                hodnota = ""
+            } else {
+                deletable = true
+                hodnota = Converters.dateToString(entita.datum)
+            }
+            expandable = true
             typ = Typy.DATUM
         }
     }
@@ -91,6 +108,7 @@ class RecyclerViewDBEntita(
     ) {
         view.setBackgroundColor(barva)
         view.setOnClickListener(null)
+        view.setOnLongClickListener(null)
         nazev.text = this.nazev
         if (this.hodnota == null) {
             hodnota.visibility = View.GONE
@@ -100,7 +118,6 @@ class RecyclerViewDBEntita(
         }
         hodnota.focusable = View.NOT_FOCUSABLE
         hodnota.inputType = InputType.TYPE_NULL
-        hodnota.setOnClickListener(null)
         setSelected(this.selected, view, activity)
         if (deletable) {
             view.setOnLongClickListener { view ->
@@ -123,8 +140,7 @@ class RecyclerViewDBEntita(
         if (expandable) {
             view.setOnClickListener {
                 if (selected) {
-                    selected = false
-                    setSelected(selected, view, activity)
+                    setSelected(false, view, activity)
                     recyclerViewAdapterDBEntity.removeFromVybrane(this)
                 } else {
                     HandleClickExpand(sipkaDolu, sipkaVpravo, recyclerViewAdapterDBEntity)
@@ -132,8 +148,7 @@ class RecyclerViewDBEntita(
             }
             hodnota.setOnClickListener {
                 if (selected) {
-                    selected = false
-                    setSelected(selected, view, activity)
+                    setSelected(false, view, activity)
                     recyclerViewAdapterDBEntity.removeFromVybrane(this)
                 } else {
                     HandleClickExpand(sipkaDolu, sipkaVpravo, recyclerViewAdapterDBEntity)
@@ -143,6 +158,23 @@ class RecyclerViewDBEntita(
                 sipkaDolu.visibility = View.VISIBLE
             } else {
                 sipkaVpravo.visibility = View.VISIBLE
+            }
+        }
+        if (selectable && entita is DBHodnota) {
+            view.setOnLongClickListener { view ->
+                setSelected(true, view, activity)
+                recyclerViewAdapterDBEntity.addToVybraneAgr(this)
+                if (ActionModeDBEntita.actionMode == null) {
+                    ActionModeDBEntita.actionMode =
+                        activity.startActionMode(activity.actionModeCallbackAgr)
+                }
+                true
+            }
+            view.setOnClickListener {
+                if (selected) {
+                    setSelected(false, view, activity)
+                    recyclerViewAdapterDBEntity.removeFromVybraneAgr(this)
+                }
             }
         }
     }

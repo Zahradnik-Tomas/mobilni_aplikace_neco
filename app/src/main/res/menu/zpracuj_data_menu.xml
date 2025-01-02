@@ -2,13 +2,25 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/hledatdb"
+        android:icon="@drawable/baseline_search"
+        android:title="Hledat"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/reloaddb"
+        android:icon="@drawable/baseline_sync"
+        android:title="Načíst"
+        app:showAsAction="always"
+        />
+    <item
         android:id="@+id/filterdb"
         android:icon="@drawable/baseline_filter"
         android:title="Filtrovat"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/smazdb"
-        android:icon="@drawable/baseline_delete_forever"
-        android:title="Smazat vše"
-        app:showAsAction="ifRoom|collapseActionView" />
+        android:title="Smazat vše" />
+    <item
+        android:id="@+id/agregujdb"
+        android:title="Zpracovat"/>
 </menu>

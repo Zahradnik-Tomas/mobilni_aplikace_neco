@@ -38,7 +38,7 @@
             android:name=".VlozDoDBActivity"
             android:configChanges="keyboardHidden|orientation|screenSize" />
         <activity
-            android:theme="@android:style/Theme.Material.Light.DarkActionBar"
+            android:theme="@style/Theme.AppCompat.Light"
             android:name=".ZpracujDataActivity"
             android:configChanges="keyboardHidden|orientation|screenSize" />
     </application>
