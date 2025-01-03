@@ -20,6 +20,7 @@
         android:id="@+id/entita_hodnota"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
+        android:minWidth="48dp"
         android:textSize="20sp"
         android:layout_alignParentEnd="true"
         android:background="@null"
