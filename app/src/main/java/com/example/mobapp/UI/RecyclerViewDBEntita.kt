@@ -128,6 +128,9 @@ class RecyclerViewDBEntita(
         setSelected(this.selected, view, activity)
         if (deletable) {
             view.setOnLongClickListener { view ->
+                if (selected) {
+                    return@setOnLongClickListener true
+                }
                 setSelected(true, view, activity)
                 if (ActionModeDBEntita.actionMode == null) {
                     ActionModeDBEntita.actionMode =
@@ -219,12 +222,15 @@ class RecyclerViewDBEntita(
         }
         if (selectable && entita is DBHodnota) {
             view.setOnLongClickListener { view ->
+                if (selected) {
+                    return@setOnLongClickListener true
+                }
                 setSelected(true, view, activity)
-                recyclerViewAdapterDBEntity.addToVybraneAgr(this)
                 if (ActionModeDBEntita.actionMode == null) {
                     ActionModeDBEntita.actionMode =
                         activity.startActionMode(activity.actionModeCallbackAgr)
                 }
+                recyclerViewAdapterDBEntity.addToVybraneAgr(this)
                 true
             }
             view.setOnClickListener {

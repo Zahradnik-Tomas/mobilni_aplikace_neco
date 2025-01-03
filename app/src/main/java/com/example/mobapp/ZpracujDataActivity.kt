@@ -336,7 +336,7 @@ class ZpracujDataActivity : AppCompatActivity() {
         ): Boolean {
             return when (item?.itemId) {
                 R.id.agregujEntity -> {
-                    (recyclerView.adapter as RecyclerViewAdapterDBEntity).vycistiVybraneAgr()
+                    (recyclerView.adapter as RecyclerViewAdapterDBEntity).vycistiNevybraneAgr()
                     val temp = CoroutineScope(Dispatchers.IO).async {
                         for (item in (recyclerView.adapter as RecyclerViewAdapterDBEntity).vybraneAgr) {
                             if (typAgr == null) {
@@ -417,6 +417,7 @@ class ZpracujDataActivity : AppCompatActivity() {
 
         override fun onDestroyActionMode(mode: ActionMode?) {
             ActionModeDBEntita.actionMode = null
+            (recyclerView.adapter as RecyclerViewAdapterDBEntity).vycistiVybraneAgr()
         }
 
     }

@@ -145,6 +145,15 @@ class RecyclerViewAdapterDBEntity(
 
     @SuppressLint("NotifyDataSetChanged")
     public fun vycistiVybraneAgr() {
+        for (item in vybraneAgr) {
+            item.SetSelected(false)
+        }
+        notifyDataSetChanged()
+        vybraneAgr.clear()
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public fun vycistiNevybraneAgr() {
         for (item in dataSet.toList()) {
             if (!item.strankaNazev.isEmpty() && item.kotvaNazev.isEmpty()) {
                 if (item.deti == null) {
