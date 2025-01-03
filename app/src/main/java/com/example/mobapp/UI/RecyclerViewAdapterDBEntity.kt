@@ -217,6 +217,12 @@ class RecyclerViewAdapterDBEntity(
         aktualizujTitle(vybraneAgr, false)
     }
 
+    public fun notifikujZmenu(pozice: Int) {
+        viewBinding.recycler.post {
+            notifyItemChanged(pozice)
+        }
+    }
+
     private fun aktualizujTitle(
         listVybr: ArrayList<RecyclerViewDBEntita> = this.vybrane,
         konciSNulou: Boolean = true

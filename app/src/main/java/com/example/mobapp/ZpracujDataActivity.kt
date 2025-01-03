@@ -33,7 +33,7 @@ import java.util.Date
 class ZpracujDataActivity : AppCompatActivity() {
     private lateinit var viewBinding: ZpracujDataActivityBinding
     private lateinit var db: DB
-    private lateinit var strankaDao: StrankaDao
+    lateinit var strankaDao: StrankaDao
     private lateinit var recyclerView: RecyclerView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -339,7 +339,7 @@ class ZpracujDataActivity : AppCompatActivity() {
                     (recyclerView.adapter as RecyclerViewAdapterDBEntity).vycistiVybraneAgr()
                     val temp = CoroutineScope(Dispatchers.IO).async {
                         for (item in (recyclerView.adapter as RecyclerViewAdapterDBEntity).vybraneAgr) {
-                            if(typAgr == null){
+                            if (typAgr == null) {
                                 break
                             }
                             val hodnota: String

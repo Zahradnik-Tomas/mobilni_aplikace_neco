@@ -78,11 +78,11 @@ class VlozDoDBActivity : ComponentActivity() {
     ) {
         var pokracuj = true
         var index = 1
-        if (!JeVyplnenoSpravne(extraHodnoty[0], Typy.DATUM)) {
+        if (!FunkceSpinave.JeVyplnenoSpravne(extraHodnoty[0], Typy.DATUM)) {
             pokracuj = false
         }
         for (hodnotaExtra in stranka.extraHodnoty) {
-            if (!JeVyplnenoSpravne(extraHodnoty[index], hodnotaExtra.typ)) {
+            if (!FunkceSpinave.JeVyplnenoSpravne(extraHodnoty[index], hodnotaExtra.typ)) {
                 pokracuj = false
             }
             index += 1
@@ -90,7 +90,7 @@ class VlozDoDBActivity : ComponentActivity() {
         index = 0
         for (kotva in stranka.kotvy) {
             for (hodnota in kotva.hodnoty) {
-                if (!JeVyplnenoSpravne(hodnoty[index], hodnota.typ)) {
+                if (!FunkceSpinave.JeVyplnenoSpravne(hodnoty[index], hodnota.typ)) {
                     pokracuj = false
                 }
                 index += 1
@@ -169,38 +169,5 @@ class VlozDoDBActivity : ComponentActivity() {
             temp.addView(editText)
         }
         return Pair(temp, editText)
-    }
-
-    private fun JeVyplnenoSpravne(editText: EditText, typ: Typy): Boolean {
-        if (editText.text.toString().isEmpty() && typ != Typy.TEXT) {
-            editText.setError("Pole je prázdné")
-            return false
-        }
-        if (typ != Typy.DECIMAL && typ != Typy.PROCENTO) {
-            if (!typ.instance.JeTimtoTypem(editText.text.toString())) {
-                editText.setError("Pole má špatnou hodnotu")
-                return false
-            }
-        } else {
-            if (!editText.text.toString().isDigitsOnly()) {
-                if (typ == Typy.PROCENTO && editText.text.toString().removeSuffix("%")
-                        .isDigitsOnly()
-                ) {
-                    return true
-                }
-                if (typ == Typy.PROCENTO) {
-                    if (!typ.instance.JeTimtoTypem(editText.text.toString().replace(",", "."))) {
-                        editText.setError("Pole má špatnou hodnotu")
-                        return false
-                    }
-                } else {
-                    if (!typ.instance.JeTimtoTypem(editText.text.toString().replace(".", ","))) {
-                        editText.setError("Pole má špatnou hodnotu")
-                        return false
-                    }
-                }
-            }
-        }
-        return true
     }
 }

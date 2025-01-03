@@ -62,6 +62,7 @@ class TypText : TypyHodnot {
 
     override fun ZpracujView(view: EditText, context: Context) {
         view.focusable = View.FOCUSABLE
+        view.isFocusableInTouchMode = true
         view.inputType = InputType.TYPE_CLASS_TEXT
     }
 }
@@ -88,6 +89,7 @@ class TypCislo : TypyHodnot {
 
     override fun ZpracujView(view: EditText, context: Context) {
         view.focusable = View.FOCUSABLE
+        view.isFocusableInTouchMode = true
         view.inputType = InputType.TYPE_CLASS_NUMBER
     }
 }
@@ -118,6 +120,7 @@ class TypDecimal : TypyHodnot {
 
     override fun ZpracujView(view: EditText, context: Context) {
         view.focusable = View.FOCUSABLE
+        view.isFocusableInTouchMode = true
         view.inputType = InputType.TYPE_NUMBER_FLAG_DECIMAL
     }
 }
@@ -148,6 +151,7 @@ class TypProcento : TypyHodnot {
 
     override fun ZpracujView(view: EditText, context: Context) {
         view.focusable = View.FOCUSABLE
+        view.isFocusableInTouchMode = true
         view.inputType = InputType.TYPE_NUMBER_FLAG_DECIMAL
     }
 }
@@ -271,6 +275,7 @@ class TypFrakce : TypyHodnot {
 
     override fun ZpracujView(view: EditText, context: Context) {
         view.focusable = View.FOCUSABLE
+        view.isFocusableInTouchMode = true
         view.inputType = InputType.TYPE_CLASS_TEXT
     }
 }

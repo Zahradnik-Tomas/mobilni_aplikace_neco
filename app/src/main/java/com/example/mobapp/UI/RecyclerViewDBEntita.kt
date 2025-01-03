@@ -15,6 +15,7 @@ import com.example.mobapp.DB.DBHodnotaExtra
 import com.example.mobapp.DB.DBKotva
 import com.example.mobapp.DB.DBStranka
 import com.example.mobapp.DB.StrankaDao
+import com.example.mobapp.FunkceSpinave
 import com.example.mobapp.Typy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,6 +39,7 @@ class RecyclerViewDBEntita(
     var expanded = false
     var selected = false
     var selectable = false
+    var editing = false
 
     init {
         if (entita is DBHodnota) {
@@ -59,6 +61,7 @@ class RecyclerViewDBEntita(
             for (Typ in Typy.entries) {
                 if (Typ.typ == entita.typ) {
                     this.typ = Typ
+                    break
                 }
             }
         } else if (entita is DBHodnotaExtra) {
@@ -71,6 +74,7 @@ class RecyclerViewDBEntita(
             for (Typ in Typy.entries) {
                 if (Typ.typ == entita.typ) {
                     typ = Typ
+                    break
                 }
             }
         } else if (entita is DBKotva) {
@@ -109,6 +113,7 @@ class RecyclerViewDBEntita(
         view.setBackgroundColor(barva)
         view.setOnClickListener(null)
         view.setOnLongClickListener(null)
+        editButton.setOnClickListener(null)
         nazev.text = this.nazev
         if (this.hodnota == null) {
             hodnota.visibility = View.GONE
@@ -118,6 +123,7 @@ class RecyclerViewDBEntita(
         }
         hodnota.focusable = View.NOT_FOCUSABLE
         hodnota.inputType = InputType.TYPE_NULL
+        hodnota.setError(null)
         hodnota.setOnClickListener(null)
         setSelected(this.selected, view, activity)
         if (deletable) {
@@ -133,6 +139,56 @@ class RecyclerViewDBEntita(
         }
         if (editable) {
             editButton.visibility = View.VISIBLE
+            if (editing) {
+                if (typ != null) {
+                    typ!!.instance.ZpracujView(hodnota, activity)
+                }
+                editButton.setImageResource(R.drawable.baseline_done)
+                editButton.setOnClickListener {
+                    if (typ != null && FunkceSpinave.JeVyplnenoSpravne(hodnota, typ!!)) {
+                        if (typ == Typy.PROCENTO || typ == Typy.DECIMAL) {
+                            val temp = hodnota.text.toString().replace(",", ".").removeSuffix("%")
+                            this.hodnota = temp
+                            if (entita is DBHodnota) {
+                                entita.hodnota = temp
+
+                            } else if (entita is DBHodnotaExtra) {
+                                entita.hodnota = temp
+                            }
+                        } else {
+                            this.hodnota = hodnota.text.toString()
+                            if (entita is DBHodnota) {
+                                entita.hodnota = hodnota.text.toString()
+                            } else if (entita is DBHodnotaExtra) {
+                                entita.hodnota = hodnota.text.toString()
+                            }
+                        }
+                        CoroutineScope(Dispatchers.IO).launch {
+                            if (entita is DBHodnota) {
+                                activity.strankaDao.insertHodnota(entita)
+                            } else if (entita is DBHodnotaExtra) {
+                                activity.strankaDao.insertHodnotaExtra(entita)
+                            }
+                        }
+                        editing = false
+                        recyclerViewAdapterDBEntity.notifikujZmenu(
+                            recyclerViewAdapterDBEntity.indexOf(
+                                this
+                            )
+                        )
+                    }
+                }
+            } else {
+                editButton.setImageResource(R.drawable.baseline_build)
+                editButton.setOnClickListener {
+                    editing = true
+                    recyclerViewAdapterDBEntity.notifikujZmenu(
+                        recyclerViewAdapterDBEntity.indexOf(
+                            this
+                        )
+                    )
+                }
+            }
         } else {
             editButton.visibility = View.GONE
         }

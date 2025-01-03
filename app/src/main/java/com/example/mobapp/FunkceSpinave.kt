@@ -1,5 +1,8 @@
 package com.example.mobapp
 
+import android.widget.EditText
+import androidx.core.text.isDigitsOnly
+
 object FunkceSpinave {
     private lateinit var mozneStranky: Array<Stranka>
 
@@ -25,6 +28,39 @@ object FunkceSpinave {
 
     public fun NastavStranky(stranky: Array<Stranka>) {
         mozneStranky = stranky
+    }
+
+    public fun JeVyplnenoSpravne(editText: EditText, typ: Typy): Boolean {
+        if (editText.text.toString().isEmpty() && typ != Typy.TEXT) {
+            editText.setError("Pole je prázdné")
+            return false
+        }
+        if (typ != Typy.DECIMAL && typ != Typy.PROCENTO) {
+            if (!typ.instance.JeTimtoTypem(editText.text.toString())) {
+                editText.setError("Pole má špatnou hodnotu")
+                return false
+            }
+        } else {
+            if (!editText.text.toString().isDigitsOnly()) {
+                if (typ == Typy.PROCENTO && editText.text.toString().removeSuffix("%")
+                        .isDigitsOnly()
+                ) {
+                    return true
+                }
+                if (typ == Typy.PROCENTO) {
+                    if (!typ.instance.JeTimtoTypem(editText.text.toString().replace(",", "."))) {
+                        editText.setError("Pole má špatnou hodnotu")
+                        return false
+                    }
+                } else {
+                    if (!typ.instance.JeTimtoTypem(editText.text.toString().replace(".", ","))) {
+                        editText.setError("Pole má špatnou hodnotu")
+                        return false
+                    }
+                }
+            }
+        }
+        return true
     }
 
     public fun ZpracujText(text: com.google.mlkit.vision.text.Text, stranka: Stranka) {
