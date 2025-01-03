@@ -8,6 +8,7 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import android.graphics.Paint
 import com.example.mobapp.DB.Converters
 import com.example.mobapp.DB.DBEntita
 import com.example.mobapp.DB.DBHodnota
@@ -121,6 +122,8 @@ class RecyclerViewDBEntita(
             hodnota.visibility = View.VISIBLE
             hodnota.setText(this.hodnota)
         }
+        hodnota.hint = null
+        hodnota.paintFlags = 0
         hodnota.focusable = View.NOT_FOCUSABLE
         hodnota.inputType = InputType.TYPE_NULL
         hodnota.setError(null)
@@ -145,6 +148,12 @@ class RecyclerViewDBEntita(
             if (editing) {
                 if (typ != null) {
                     typ!!.instance.ZpracujView(hodnota, activity)
+                    hodnota.hint = typ!!.instance.VratDefHodnotu()
+                    if (hodnota.hint.length < 8) {
+                        hodnota.hint =
+                            hodnota.hint.toString() + (" ".repeat(8 - hodnota.hint.length))
+                    }
+                    hodnota.paintFlags = Paint.UNDERLINE_TEXT_FLAG
                 }
                 editButton.setImageResource(R.drawable.baseline_done)
                 editButton.setOnClickListener {
