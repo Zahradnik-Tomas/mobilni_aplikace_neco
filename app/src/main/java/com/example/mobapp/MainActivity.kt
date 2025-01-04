@@ -8,9 +8,9 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -23,7 +23,7 @@ import kotlinx.serialization.json.Json
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private lateinit var viewBinding: MainActivityBinding
     private lateinit var cameraExecutor: ExecutorService
     private val imageAnalyzerCam = ImageAnalyzerCam()
@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         viewBinding = MainActivityBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
-        viewBinding.button2.setOnClickListener {
+        viewBinding.odesliButton.setOnClickListener {
             if (imageAnalyzerCam.Stranka() != null) {
                 val intent = Intent(this, VlozDoDBActivity::class.java).putExtra(
                     getString(R.string.klic_json), Json.encodeToString(
@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
                 startActivity(intent)
             }
         }
-        viewBinding.button3.setOnClickListener {
+        viewBinding.dataButton.setOnClickListener {
             startActivity(Intent(this, ZpracujDataActivity::class.java))
         }
     }

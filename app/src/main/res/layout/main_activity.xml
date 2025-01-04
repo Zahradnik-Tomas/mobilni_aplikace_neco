@@ -10,23 +10,62 @@
         android:id="@+id/viewFinder"
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
-
-
     </androidx.camera.view.PreviewView>
 
-    <Button
-        android:id="@+id/button3"
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Button"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <ImageButton
+        android:id="@+id/zobrazButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        android:src="@drawable/baseline_visibility"
+        android:background="?android:selectableItemBackground"/>
+
+    <ImageButton
+        android:id="@+id/dataButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-    <Button
-        android:id="@+id/button2"
+        app:layout_constraintTop_toTopOf="parent"
+        android:src="@drawable/baseline_storage"
+        android:background="?android:selectableItemBackground"/>
+
+    <ImageButton
+        android:id="@+id/vycistiStrankuButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Button"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/zobrazButton"
+        app:layout_constraintEnd_toEndOf="@+id/zobrazButton"
+        app:layout_constraintStart_toStartOf="@+id/zobrazButton"
+        android:src="@drawable/baseline_delete_outline"
+        android:background="?android:selectableItemBackground"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/odesliButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="@color/blue"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:src="@drawable/baseline_send" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

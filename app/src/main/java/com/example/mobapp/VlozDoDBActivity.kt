@@ -6,8 +6,7 @@ import android.widget.EditText
 import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
-import androidx.activity.ComponentActivity
-import androidx.core.text.isDigitsOnly
+import androidx.appcompat.app.AppCompatActivity
 import androidx.room.Room
 import com.example.mobapp.DB.Converters
 import com.example.mobapp.DB.DB
@@ -24,7 +23,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 
-class VlozDoDBActivity : ComponentActivity() {
+class VlozDoDBActivity : AppCompatActivity() {
     lateinit var db: DB
     private val mutex = Mutex()
     override fun onCreate(savedInstanceState: Bundle?) {

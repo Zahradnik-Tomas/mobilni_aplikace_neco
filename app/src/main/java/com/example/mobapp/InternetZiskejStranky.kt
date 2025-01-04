@@ -3,13 +3,13 @@ package com.example.mobapp
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import com.example.mobapp.databinding.InternetZiskejStrankyBinding
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
 
-class InternetZiskejStranky : ComponentActivity() {
+class InternetZiskejStranky : AppCompatActivity() {
     private lateinit var viewBinding: InternetZiskejStrankyBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
