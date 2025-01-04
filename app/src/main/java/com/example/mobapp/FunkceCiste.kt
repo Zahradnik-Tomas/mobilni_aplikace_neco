@@ -54,9 +54,6 @@ class FunkceCiste private constructor() {
             if (Stranky.isEmpty()) {
                 throw IllegalArgumentException("Stranky nesmi byt prazdne")
             }
-            if (Stranky.size == 1) {
-                return Stranky
-            }
             val listKVraceni = ArrayList<Stranka>()
             val listVhodnosti = Array(Stranky.size) { 0 }
             for (block in bloky) {
@@ -67,6 +64,10 @@ class FunkceCiste private constructor() {
                         }
                     }
                 }
+            }
+            val temp = listVhodnosti.maxOrNull()
+            if(temp == null || temp == 0){
+                return emptyArray()
             }
             for (index in VratVhodneIndexy(listVhodnosti)) {
                 listKVraceni.add(Stranky[index])

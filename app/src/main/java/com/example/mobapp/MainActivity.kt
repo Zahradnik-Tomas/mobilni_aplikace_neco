@@ -2,11 +2,15 @@ package com.example.mobapp
 
 import android.Manifest
 import android.app.Activity
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
+import android.widget.TableLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,7 +25,9 @@ import androidx.core.content.ContextCompat
 import com.example.mobapp.databinding.MainActivityBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -65,6 +71,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    private var zobrazuji = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = MainActivityBinding.inflate(layoutInflater)
@@ -90,6 +98,61 @@ class MainActivity : AppCompatActivity() {
         }
         viewBinding.vycistiStrankuButton.setOnClickListener {
             imageAnalyzerCam.NastavStranku(null)
+        }
+        viewBinding.zobrazButton.setOnClickListener {
+            zobrazuji = true
+            val dialog = Dialog(this)
+            val view = layoutInflater.inflate(R.layout.main_zobraz_stranku, viewBinding.root, false)
+            dialog.setContentView(view)
+            val table = view.findViewById<TableLayout>(R.id.tableMain)
+            val button = view.findViewById<Button>(R.id.zavriZobrazeniMain)
+            button.setOnClickListener {
+                dialog.dismiss()
+            }
+            dialog.setOnDismissListener {
+                zobrazuji = false
+            }
+            dialog.show()
+            CoroutineScope(Dispatchers.Main).launch {
+                while (zobrazuji) {
+                    val stranka: Stranka?
+                    imageAnalyzerCam.strankaMutex.withLock {
+                        stranka = imageAnalyzerCam.Stranka()
+                    }
+                    table.removeAllViews()
+                    val strankaRow =
+                        layoutInflater.inflate(R.layout.main_row_stranka, viewBinding.root, false)
+                    val strankaText = strankaRow.findViewById<TextView>(R.id.textViewStranka)
+                    table.addView(strankaRow)
+                    if (stranka == null) {
+                        strankaText.text = "Nic"
+                    } else {
+                        strankaText.text = stranka.nazev
+                        for (kotva in stranka.kotvy) {
+                            val kotvaRow = layoutInflater.inflate(
+                                R.layout.table_row_kotva,
+                                viewBinding.root,
+                                false
+                            )
+                            val kotvaText = kotvaRow.findViewById<TextView>(R.id.textViewKotva)
+                            kotvaText.text = kotva.nazev
+                            table.addView(kotvaRow)
+                            for (hodnota in kotva.hodnoty) {
+                                val hodnotaRow = layoutInflater.inflate(
+                                    R.layout.table_row_hodnota,
+                                    viewBinding.root,
+                                    false
+                                )
+                                val hodnotaText =
+                                    hodnotaRow.findViewById<TextView>(R.id.textViewHodnota)
+                                hodnotaText.text = "${hodnota.nazev} - ${hodnota.hodnota}"
+                                table.addView(hodnotaRow)
+                            }
+                        }
+                    }
+                    delay(100)
+                }
+            }
         }
     }
 

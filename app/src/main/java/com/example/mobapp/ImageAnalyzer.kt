@@ -1,6 +1,5 @@
 package com.example.mobapp
 
-import android.util.Log
 import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
@@ -34,7 +33,6 @@ class ImageAnalyzerCam : ImageAnalysis.Analyzer {
                     image.imageInfo.rotationDegrees
                 )
             ).addOnSuccessListener { text ->
-                Log.i("ANALYZER", "Uspech")
                 if (stranka == null) {
                     NastavStranku(FunkceSpinave.VratDetekovanouStranku(text, stranky))
                 }
@@ -48,23 +46,10 @@ class ImageAnalyzerCam : ImageAnalysis.Analyzer {
                         strankaMutex.withLock { ->
                             if (!strankaZmenena) {
                                 stranka = tempStranka
-                                var temp = StringBuilder()
-                                temp.appendLine("${stranka!!.nazev} ${stranka!!.datum}")
-                                for (hodnota in stranka!!.extraHodnoty) {
-                                    temp.appendLine("${hodnota.nazev} ${hodnota.hodnota}")
-                                }
-                                for (kotva in stranka!!.kotvy) {
-                                    temp.appendLine(kotva.nazev)
-                                    for (hodnota in kotva.hodnoty) {
-                                        temp.appendLine("${hodnota.nazev} ${hodnota.hodnota}")
-                                    }
-                                }
-                                Log.i("ANALYZER", temp.toString())
                             }
                         }
                     } else {
                         strankaMutex.unlock()
-                        Log.i("ANALYZER", "Stranka je null")
                     }
                 }
             }
@@ -87,6 +72,8 @@ class ImageAnalyzerCam : ImageAnalysis.Analyzer {
                 this@ImageAnalyzerCam.stranka = stranka
                 if (stranka != null) {
                     CacheRozparani.NastavCache(stranka)
+                } else {
+                    FunkceSpinave.NastavStranky(stranky)
                 }
             }
         }
