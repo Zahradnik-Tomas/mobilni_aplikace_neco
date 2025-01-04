@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
-class Stranka(
+data class Stranka(
     var nazev: String,
     var kotvy: Array<Kotva>,
     var extraHodnoty: Array<Hodnota> = emptyArray<Hodnota>()

@@ -1,6 +1,7 @@
 package com.example.mobapp
 
 import android.os.Bundle
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TableLayout
@@ -67,6 +68,8 @@ class VlozDoDBActivity : AppCompatActivity() {
                 }
             }
         }
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
     private suspend fun Klik(
@@ -150,6 +153,13 @@ class VlozDoDBActivity : AppCompatActivity() {
     override fun onDestroy() {
         db.close()
         super.onDestroy()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) {
+            finish()
+        }
+        return false
     }
 
     private fun getTableRow(

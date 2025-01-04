@@ -19,6 +19,9 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.example.mobapp.databinding.MainActivityBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -67,17 +70,26 @@ class MainActivity : AppCompatActivity() {
         viewBinding = MainActivityBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
         viewBinding.odesliButton.setOnClickListener {
-            if (imageAnalyzerCam.Stranka() != null) {
-                val intent = Intent(this, VlozDoDBActivity::class.java).putExtra(
-                    getString(R.string.klic_json), Json.encodeToString(
-                        Stranka.serializer(), imageAnalyzerCam.Stranka()!!
+            CoroutineScope(Dispatchers.Main).launch {
+                imageAnalyzerCam.strankaMutex.lock()
+                if (imageAnalyzerCam.Stranka() != null) {
+                    val intent = Intent(this@MainActivity, VlozDoDBActivity::class.java).putExtra(
+                        getString(R.string.klic_json), Json.encodeToString(
+                            Stranka.serializer(), imageAnalyzerCam.Stranka()!!
+                        )
                     )
-                )
-                startActivity(intent)
+                    imageAnalyzerCam.strankaMutex.unlock()
+                    startActivity(intent)
+                } else {
+                    imageAnalyzerCam.strankaMutex.unlock()
+                }
             }
         }
         viewBinding.dataButton.setOnClickListener {
             startActivity(Intent(this, ZpracujDataActivity::class.java))
+        }
+        viewBinding.vycistiStrankuButton.setOnClickListener {
+            imageAnalyzerCam.NastavStranku(null)
         }
     }
 

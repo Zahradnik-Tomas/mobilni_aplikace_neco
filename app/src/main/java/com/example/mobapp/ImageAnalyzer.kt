@@ -8,11 +8,18 @@ import androidx.camera.core.ImageProxy
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class ImageAnalyzerCam : ImageAnalysis.Analyzer {
     private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
     private lateinit var stranky: Array<Stranka>
     private var stranka: Stranka? = null
+    val strankaMutex = Mutex()
+    private var strankaZmenena = false
 
     @OptIn(ExperimentalGetImage::class)
     override fun analyze(image: ImageProxy) {
@@ -31,22 +38,34 @@ class ImageAnalyzerCam : ImageAnalysis.Analyzer {
                 if (stranka == null) {
                     NastavStranku(FunkceSpinave.VratDetekovanouStranku(text, stranky))
                 }
-                if (stranka != null) {
-                    FunkceSpinave.ZpracujText(text, stranka!!)
-                    var temp = StringBuilder()
-                    temp.appendLine("${stranka!!.nazev} ${stranka!!.datum}")
-                    for (hodnota in stranka!!.extraHodnoty) {
-                        temp.appendLine("${hodnota.nazev} ${hodnota.hodnota}")
-                    }
-                    for (kotva in stranka!!.kotvy) {
-                        temp.appendLine(kotva.nazev)
-                        for (hodnota in kotva.hodnoty) {
-                            temp.appendLine("${hodnota.nazev} ${hodnota.hodnota}")
+                CoroutineScope(Dispatchers.Main).launch {
+                    strankaMutex.lock()
+                    if (stranka != null) {
+                        val tempStranka = stranka!!.copy()
+                        strankaZmenena = false
+                        strankaMutex.unlock()
+                        FunkceSpinave.ZpracujText(text, tempStranka)
+                        strankaMutex.withLock { ->
+                            if (!strankaZmenena) {
+                                stranka = tempStranka
+                                var temp = StringBuilder()
+                                temp.appendLine("${stranka!!.nazev} ${stranka!!.datum}")
+                                for (hodnota in stranka!!.extraHodnoty) {
+                                    temp.appendLine("${hodnota.nazev} ${hodnota.hodnota}")
+                                }
+                                for (kotva in stranka!!.kotvy) {
+                                    temp.appendLine(kotva.nazev)
+                                    for (hodnota in kotva.hodnoty) {
+                                        temp.appendLine("${hodnota.nazev} ${hodnota.hodnota}")
+                                    }
+                                }
+                                Log.i("ANALYZER", temp.toString())
+                            }
                         }
+                    } else {
+                        strankaMutex.unlock()
+                        Log.i("ANALYZER", "Stranka je null")
                     }
-                    Log.i("ANALYZER", temp.toString())
-                } else {
-                    Log.i("ANALYZER", "Stranka je null")
                 }
             }
                 .addOnCompleteListener { /* image.close v tomto Listeneru, misto mimo nej je VELMI DULEZITE */
@@ -58,13 +77,18 @@ class ImageAnalyzerCam : ImageAnalysis.Analyzer {
     public fun NastavStranky(stranky: Array<Stranka>) {
         this.stranky = stranky
         FunkceSpinave.NastavStranky(stranky)
-        stranka = null
+        NastavStranku(null)
     }
 
     public fun NastavStranku(stranka: Stranka?) {
-        this.stranka = stranka
-        if (stranka != null) {
-            CacheRozparani.NastavCache(stranka)
+        CoroutineScope(Dispatchers.Main).launch {
+            strankaMutex.withLock { ->
+                strankaZmenena = true
+                this@ImageAnalyzerCam.stranka = stranka
+                if (stranka != null) {
+                    CacheRozparani.NastavCache(stranka)
+                }
+            }
         }
     }
 

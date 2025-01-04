@@ -50,6 +50,8 @@ class ZpracujDataActivity : AppCompatActivity() {
             Converters.fromString(datumOd),
             desc = this.desc
         )
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
     private var datumOd = ""
@@ -157,6 +159,10 @@ class ZpracujDataActivity : AppCompatActivity() {
                 ActionModeDBEntita.actionMode?.finish()
                 zobrazVsechnyData(desc = desc)
                 return true
+            }
+
+            android.R.id.home -> {
+                finish()
             }
         }
         return super.onOptionsItemSelected(item)
