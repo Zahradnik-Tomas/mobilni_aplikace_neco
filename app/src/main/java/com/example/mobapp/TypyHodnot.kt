@@ -73,7 +73,7 @@ class TypCislo : TypyHodnot {
     }
 
     override fun JeTimtoTypem(str: String): Boolean {
-        return !str.isEmpty() && str.isDigitsOnly()
+        return !str.isEmpty() && str.removePrefix("-").isDigitsOnly()
     }
 
     override fun VratView(context: Context, hodnota: String): EditText {
@@ -104,7 +104,7 @@ class TypDecimal : TypyHodnot {
         if (temp.size != 2) {
             return false
         }
-        return temp[0].isDigitsOnly() && temp[1].isDigitsOnly()
+        return temp[0].removePrefix("-").isDigitsOnly() && temp[1].isDigitsOnly()
     }
 
     override fun VratView(context: Context, hodnota: String): EditText {

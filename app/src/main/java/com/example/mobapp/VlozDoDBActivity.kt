@@ -62,7 +62,7 @@ class VlozDoDBActivity : AppCompatActivity() {
         table.addView(button)
         button.text = "Posli"
         button.setOnClickListener {
-            CoroutineScope(Dispatchers.IO).launch {
+            CoroutineScope(Dispatchers.Main).launch {
                 mutex.withLock { ->
                     Klik(extraHodnoty, stranka, hodnoty, strankaDao)
                 }
