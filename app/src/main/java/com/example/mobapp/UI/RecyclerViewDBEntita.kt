@@ -1,7 +1,6 @@
 package com.example.mobapp.UI
 
 import android.annotation.SuppressLint
-import android.graphics.Color
 import android.text.InputType
 import android.view.View
 import android.widget.EditText
@@ -44,7 +43,7 @@ class RecyclerViewDBEntita(
 
     init {
         if (entita is DBHodnota) {
-            barva = Color.GRAY
+            barva = R.color.hodnotova
             if (!strankaNazev.isEmpty()) {
                 if (kotvaNazev.isEmpty()) {
                     throw IllegalArgumentException("Nazev kotvy je prazdny")
@@ -66,7 +65,7 @@ class RecyclerViewDBEntita(
                 }
             }
         } else if (entita is DBHodnotaExtra) {
-            barva = Color.DKGRAY
+            barva = R.color.extra_hodnotova.toInt()
             editable = true
             deletable = false
             expandable = false
@@ -79,14 +78,14 @@ class RecyclerViewDBEntita(
                 }
             }
         } else if (entita is DBKotva) {
-            barva = Color.CYAN
+            barva = R.color.kotvova.toInt()
             editable = false
             deletable = false
             expandable = true
             nazev = entita.nazev
             hodnota = null
         } else {
-            barva = R.color.sediva
+            barva = R.color.strankova.toInt()
             editable = false
             nazev = (entita as DBStranka).nazev
             if (!strankaNazev.isEmpty()) {
@@ -111,7 +110,7 @@ class RecyclerViewDBEntita(
         recyclerViewAdapterDBEntity: RecyclerViewAdapterDBEntity,
         activity: ZpracujDataActivity
     ) {
-        view.setBackgroundColor(barva)
+        view.setBackgroundColor(activity.resources.getColor(barva, null))
         view.setOnClickListener(null)
         view.setOnLongClickListener(null)
         editButton.setOnClickListener(null)

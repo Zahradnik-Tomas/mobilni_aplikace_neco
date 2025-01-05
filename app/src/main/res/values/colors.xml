@@ -7,6 +7,9 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="sediva">#AFAFAF</color>
+    <color name="strankova">#D1D1D1</color>
+    <color name="kotvova">#A2FFEE</color>
+    <color name="extra_hodnotova">#F2ADFF</color>
+    <color name="hodnotova">#B9FFA1</color>
     <color name="blue">#00B2FF</color>
 </resources>
