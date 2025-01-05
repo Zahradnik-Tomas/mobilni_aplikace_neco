@@ -2,6 +2,7 @@ package com.example.mobapp
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.app.DatePickerDialog
 import android.app.Dialog
 import android.os.Bundle
 import android.view.ActionMode
@@ -13,6 +14,8 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.doAfterTextChanged
+import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
@@ -52,6 +55,34 @@ class ZpracujDataActivity : AppCompatActivity() {
         )
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        val datumOdEditText = findViewById<EditText>(R.id.datumOd)
+        val datumDoEditText = findViewById<EditText>(R.id.datumDo)
+        Typy.DATUM.instance.ZpracujView(datumOdEditText, this)
+        Typy.DATUM.instance.ZpracujView(datumDoEditText, this)
+        findViewById<ImageButton>(R.id.buttonDelDatum).setOnClickListener {
+            datumOdEditText.text.clear()
+            datumDoEditText.text.clear()
+        }
+        datumOdEditText.doAfterTextChanged { editable ->
+            datumOd = editable.toString()
+            typAgr = null
+            ActionModeDBEntita.actionMode?.finish()
+            zobrazVsechnyData(
+                Converters.fromString(datumDo),
+                Converters.fromString(datumOd),
+                desc = desc
+            )
+        }
+        datumDoEditText.doAfterTextChanged { editable ->
+            datumDo = editable.toString()
+            typAgr = null
+            ActionModeDBEntita.actionMode?.finish()
+            zobrazVsechnyData(
+                Converters.fromString(datumDo),
+                Converters.fromString(datumOd),
+                desc = desc
+            )
+        }
     }
 
     private var datumOd = ""
