@@ -1,11 +1,11 @@
 package com.example.mobapp
 
+import android.graphics.Paint
 import android.os.Bundle
 import android.view.MenuItem
-import android.widget.Button
+import android.view.View
 import android.widget.EditText
 import android.widget.TableLayout
-import android.widget.TableRow
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.room.Room
@@ -27,6 +27,7 @@ import kotlinx.serialization.json.Json
 class VlozDoDBActivity : AppCompatActivity() {
     lateinit var db: DB
     private val mutex = Mutex()
+    private lateinit var viewBinding: VlozDoDbActivityBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         db = Room.databaseBuilder(this, DB::class.java, getString(R.string.databaze_nazev)).build()
@@ -34,34 +35,31 @@ class VlozDoDBActivity : AppCompatActivity() {
         val stranka = Json.decodeFromString<Stranka>(
             intent.getStringExtra(getString(R.string.klic_json)).orEmpty()
         )
-        val viewBinding = VlozDoDbActivityBinding.inflate(layoutInflater)
+        viewBinding = VlozDoDbActivityBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
-        val table = TableLayout(this)
-        viewBinding.scrollView.addView(table)
-        table.addView(getTableRow(stranka.nazev).first)
+        val table = findViewById<TableLayout>(R.id.vlozTableLayout)
         val extraHodnoty = ArrayList<EditText>()
-        getTableRow("Datum", stranka.datum, Typy.DATUM).let {
-            table.addView(it.first)
-            it.second?.let { extraHodnoty.add(it) }
+        getHodnotaRow("Datum", stranka.datum, Typy.DATUM).let { par ->
+            table.addView(par.first)
+            extraHodnoty.add(par.second)
         }
         for (hodnota in stranka.extraHodnoty) {
-            val viewPair = getTableRow(hodnota.nazev, hodnota.hodnota, hodnota.typ)
-            table.addView(viewPair.first)
-            viewPair.second?.let { extraHodnoty.add(it) }
+            getHodnotaRow(hodnota.nazev, hodnota.hodnota, hodnota.typ).let { par ->
+                table.addView(par.first)
+                extraHodnoty.add(par.second)
+            }
         }
         val hodnoty = ArrayList<EditText>()
         for (kotva in stranka.kotvy) {
-            table.addView(getTableRow(kotva.nazev).first)
+            table.addView(getKotvaRow(kotva.nazev))
             for (hodnota in kotva.hodnoty) {
-                val viewPair = getTableRow(hodnota.nazev, hodnota.hodnota, hodnota.typ)
-                table.addView(viewPair.first)
-                viewPair.second?.let { hodnoty.add(it) }
+                getHodnotaRow(hodnota.nazev, hodnota.hodnota, hodnota.typ).let { par ->
+                    table.addView(par.first)
+                    hodnoty.add(par.second)
+                }
             }
         }
-        val button = Button(this)
-        table.addView(button)
-        button.text = "Posli"
-        button.setOnClickListener {
+        viewBinding.odesliButton.setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
                 mutex.withLock { ->
                     Klik(extraHodnoty, stranka, hodnoty, strankaDao)
@@ -70,6 +68,10 @@ class VlozDoDBActivity : AppCompatActivity() {
         }
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowCustomEnabled(true)
+        supportActionBar?.setCustomView(R.layout.vloz_stranka)
+        supportActionBar?.customView?.findViewById<TextView>(R.id.textViewStranka)?.text =
+            stranka.nazev
     }
 
     private suspend fun Klik(
@@ -162,21 +164,27 @@ class VlozDoDBActivity : AppCompatActivity() {
         return false
     }
 
-    private fun getTableRow(
-        str1: String,
-        str2: String? = null,
-        typ: Typy = Typy.CISLO
-    ): Pair<TableRow, EditText?> {
-        val temp = TableRow(this)
-        val textView = TextView(this)
-        textView.text = str1
-        textView.textSize = 12f
-        temp.addView(textView)
-        var editText: EditText? = null
-        if (str2 != null) {
-            editText = typ.instance.VratView(this, str2)
-            temp.addView(editText)
+    private fun getHodnotaRow(nazev: String, hodnota: String, typ: Typy): Pair<View, EditText> {
+        val row = layoutInflater.inflate(R.layout.vloz_hodnota, viewBinding.root, false)
+        row.findViewById<TextView>(R.id.textViewHodnota).text = nazev
+        val pole = row.findViewById<EditText>(R.id.editTextHodnota)
+        if (hodnota.isEmpty()) {
+            pole.setText(typ.instance.VratDefHodnotu())
+        } else {
+            pole.setText(hodnota)
         }
-        return Pair(temp, editText)
+        typ.instance.ZpracujView(pole, this)
+        pole.hint = typ.instance.VratDefHodnotu()
+        if (pole.hint.isEmpty()) {
+            pole.hint = " "
+        }
+        pole.paintFlags = Paint.UNDERLINE_TEXT_FLAG
+        return Pair(row, pole)
+    }
+
+    private fun getKotvaRow(nazev: String): View {
+        val row = layoutInflater.inflate(R.layout.table_row_kotva, viewBinding.root, false)
+        row.findViewById<TextView>(R.id.textViewKotva).text = nazev
+        return row
     }
 }
