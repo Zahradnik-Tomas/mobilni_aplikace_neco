@@ -8,6 +8,7 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.text.isDigitsOnly
 import androidx.recyclerview.widget.RecyclerView
 import com.example.mobapp.DB.StrankaDao
 import com.example.mobapp.R
@@ -116,6 +117,9 @@ class RecyclerViewAdapterDBEntity(
 
     @SuppressLint("NotifyDataSetChanged")
     private fun SmazVybrane() {
+        if (activity.title.isDigitsOnly()) {
+            activity.title = (activity.title.toString().toInt() - vybrane.size).toString()
+        }
         for (item in vybrane) {
             item.Smaz(strankaDao)
             if (item.expanded && item.deti != null) {

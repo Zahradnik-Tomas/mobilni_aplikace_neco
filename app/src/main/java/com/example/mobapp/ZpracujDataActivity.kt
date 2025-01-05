@@ -185,7 +185,13 @@ class ZpracujDataActivity : AppCompatActivity() {
             }
 
             R.id.reloaddb -> {
-                delDatumButton.callOnClick()
+                if (datumOd.isEmpty() && datumDo.isEmpty()) {
+                    typAgr = null
+                    ActionModeDBEntita.actionMode?.finish()
+                    zobrazVsechnyData(desc = desc)
+                } else {
+                    delDatumButton.callOnClick()
+                }
                 return true
             }
 
