@@ -2,7 +2,6 @@ package com.example.mobapp
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.app.DatePickerDialog
 import android.app.Dialog
 import android.os.Bundle
 import android.view.ActionMode
@@ -15,7 +14,6 @@ import android.widget.ImageButton
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
-import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
@@ -38,6 +36,7 @@ class ZpracujDataActivity : AppCompatActivity() {
     private lateinit var db: DB
     lateinit var strankaDao: StrankaDao
     private lateinit var recyclerView: RecyclerView
+    private lateinit var delDatumButton: ImageButton
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         db = Room.databaseBuilder(this, DB::class.java, getString(R.string.databaze_nazev)).build()
@@ -48,18 +47,14 @@ class ZpracujDataActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter =
             RecyclerViewAdapterDBEntity(ArrayList(), viewBinding, this, strankaDao)
-        zobrazVsechnyData(
-            Converters.fromString(datumDo),
-            Converters.fromString(datumOd),
-            desc = this.desc
-        )
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val datumOdEditText = findViewById<EditText>(R.id.datumOd)
         val datumDoEditText = findViewById<EditText>(R.id.datumDo)
         Typy.DATUM.instance.ZpracujView(datumOdEditText, this)
         Typy.DATUM.instance.ZpracujView(datumDoEditText, this)
-        findViewById<ImageButton>(R.id.buttonDelDatum).setOnClickListener {
+        delDatumButton = findViewById<ImageButton>(R.id.buttonDelDatum)
+        delDatumButton.setOnClickListener {
             datumOdEditText.text.clear()
             datumDoEditText.text.clear()
         }
@@ -83,6 +78,12 @@ class ZpracujDataActivity : AppCompatActivity() {
                 desc = desc
             )
         }
+        title = ""
+        zobrazVsechnyData(
+            Converters.fromString(datumDo),
+            Converters.fromString(datumOd),
+            desc = this.desc
+        )
     }
 
     private var datumOd = ""
@@ -184,11 +185,7 @@ class ZpracujDataActivity : AppCompatActivity() {
             }
 
             R.id.reloaddb -> {
-                datumOd = ""
-                datumDo = ""
-                typAgr = null
-                ActionModeDBEntita.actionMode?.finish()
-                zobrazVsechnyData(desc = desc)
+                delDatumButton.callOnClick()
                 return true
             }
 
@@ -205,7 +202,9 @@ class ZpracujDataActivity : AppCompatActivity() {
             zpracujData(stranky)
         }
         CoroutineScope(Dispatchers.Main).launch {
-            (recyclerView.adapter as RecyclerViewAdapterDBEntity).setDataSet(data.await())
+            val set = data.await()
+            title = set.size.toString()
+            (recyclerView.adapter as RecyclerViewAdapterDBEntity).setDataSet(set)
         }
     }
 
@@ -229,7 +228,9 @@ class ZpracujDataActivity : AppCompatActivity() {
             zpracujData(stranky)
         }
         CoroutineScope(Dispatchers.Main).launch {
-            (recyclerView.adapter as RecyclerViewAdapterDBEntity).setDataSet(data.await())
+            val set = data.await()
+            title = set.size.toString()
+            (recyclerView.adapter as RecyclerViewAdapterDBEntity).setDataSet(set)
         }
     }
 
@@ -253,6 +254,7 @@ class ZpracujDataActivity : AppCompatActivity() {
         }
         CoroutineScope(Dispatchers.Main).launch {
             val kostry = temp.await()
+            title = kostry.size.toString()
             val dataSet = ArrayList<RecyclerViewDBEntita>()
             for (stranka in kostry) {
                 val stran = ArrayList<RecyclerViewDBEntita>()
@@ -373,6 +375,7 @@ class ZpracujDataActivity : AppCompatActivity() {
         ): Boolean {
             return when (item?.itemId) {
                 R.id.agregujEntity -> {
+                    title = ""
                     (recyclerView.adapter as RecyclerViewAdapterDBEntity).vycistiNevybraneAgr()
                     val temp = CoroutineScope(Dispatchers.IO).async {
                         for (item in (recyclerView.adapter as RecyclerViewAdapterDBEntity).vybraneAgr) {
