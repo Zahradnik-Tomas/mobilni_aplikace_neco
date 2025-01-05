@@ -17,7 +17,7 @@ object FunkceSpinave {
             return null
         }
         if (mozneStranky.isEmpty()) {
-            mozneStranky = mozStranky.clone()
+            mozneStranky = mozStranky.map { FunkceCiste.StrankaDeepCopy(it)!! }.toTypedArray()
         }
         mozneStranky = FunkceCiste.VratMozneStranky(text.textBlocks, mozneStranky)
         if (mozneStranky.size == 1) {
@@ -27,7 +27,7 @@ object FunkceSpinave {
     }
 
     public fun NastavStranky(stranky: Array<Stranka>) {
-        mozneStranky = stranky
+        mozneStranky = stranky.map { FunkceCiste.StrankaDeepCopy(it)!! }.toTypedArray()
     }
 
     public fun JeVyplnenoSpravne(editText: EditText, typ: Typy): Boolean {

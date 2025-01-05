@@ -66,7 +66,7 @@ class FunkceCiste private constructor() {
                 }
             }
             val temp = listVhodnosti.maxOrNull()
-            if(temp == null || temp == 0){
+            if (temp == null || temp == 0) {
                 return emptyArray()
             }
             for (index in VratVhodneIndexy(listVhodnosti)) {
@@ -172,6 +172,20 @@ class FunkceCiste private constructor() {
                 }
                 return stranka.kotvy[index]
             }
+        }
+
+        public fun StrankaDeepCopy(Stranka: Stranka?): Stranka? {
+            if (Stranka == null) {
+                return null
+            }
+            val stranka = Stranka.copy()
+            stranka.kotvy = Stranka.kotvy.map { it.copy() }.toTypedArray()
+            for (kotva in stranka.kotvy.indices) {
+                stranka.kotvy[kotva].hodnoty =
+                    Stranka.kotvy[kotva].hodnoty.map { it.copy() }.toTypedArray()
+            }
+            stranka.extraHodnoty = Stranka.extraHodnoty.map { it.copy() }.toTypedArray()
+            return stranka
         }
 
         private fun ParyVeSlove(str: String): Array<String> {

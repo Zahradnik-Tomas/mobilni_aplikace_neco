@@ -39,7 +39,7 @@ class ImageAnalyzerCam : ImageAnalysis.Analyzer {
                 CoroutineScope(Dispatchers.Main).launch {
                     strankaMutex.lock()
                     if (stranka != null) {
-                        val tempStranka = stranka!!.copy()
+                        val tempStranka = FunkceCiste.StrankaDeepCopy(stranka)!!
                         strankaZmenena = false
                         strankaMutex.unlock()
                         FunkceSpinave.ZpracujText(text, tempStranka)
@@ -69,7 +69,7 @@ class ImageAnalyzerCam : ImageAnalysis.Analyzer {
         CoroutineScope(Dispatchers.Main).launch {
             strankaMutex.withLock { ->
                 strankaZmenena = true
-                this@ImageAnalyzerCam.stranka = stranka
+                this@ImageAnalyzerCam.stranka = FunkceCiste.StrankaDeepCopy(stranka)
                 if (stranka != null) {
                     CacheRozparani.NastavCache(stranka)
                 } else {
