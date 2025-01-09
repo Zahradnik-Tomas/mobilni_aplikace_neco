@@ -6,6 +6,8 @@ import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -112,6 +114,14 @@ class MainActivity : AppCompatActivity() {
             dialog.setOnDismissListener {
                 zobrazuji = false
             }
+            ColorDrawable(Color.WHITE).let { color ->
+                color.alpha = 180
+                dialog.window!!.setBackgroundDrawable(color)
+            }
+            dialog.window!!.setLayout(
+                (resources.displayMetrics.widthPixels * 0.85).toInt(),
+                (resources.displayMetrics.heightPixels * 0.8).toInt()
+            )
             dialog.show()
             CoroutineScope(Dispatchers.Main).launch {
                 while (zobrazuji) {
