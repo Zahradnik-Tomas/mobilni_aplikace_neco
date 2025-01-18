@@ -37,7 +37,10 @@ enum class Typy(val instance: TypyHodnot, val typ: Int) {
     DATUM(TypDatum(), 2),
 
     @SerialName("frakce")
-    FRAKCE(TypFrakce(), 5)
+    FRAKCE(TypFrakce(), 5),
+
+    @SerialName("cislospec")
+    CISLO_SPEC(TypCislo(), 6) /* Aby cislo bylo vynechane z agregacnich funkci */
 }
 
 class TypText : TypyHodnot {
