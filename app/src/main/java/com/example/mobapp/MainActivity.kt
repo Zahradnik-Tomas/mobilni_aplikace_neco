@@ -10,6 +10,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.TableLayout
 import android.widget.TextView
@@ -19,6 +20,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
@@ -74,6 +77,9 @@ class MainActivity : AppCompatActivity() {
         }
 
     private var zobrazuji = false
+    private var photoMode = false
+    private val imageCapture =
+        ImageCapture.Builder().setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY).build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -164,6 +170,15 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        viewBinding.vyfotButton.setOnClickListener {
+            imageCapture.takePicture(
+                cameraExecutor,
+                object : ImageCapture.OnImageCapturedCallback() {
+                    override fun onCaptureSuccess(image: ImageProxy) {
+                        imageAnalyzerCam.analyze(image)
+                    }
+                })
+        }
     }
 
     override fun onResume() {
@@ -173,8 +188,10 @@ class MainActivity : AppCompatActivity() {
             startCamera()
         } else {
             requestPermissions()
+            return
         }
         cameraExecutor = Executors.newSingleThreadExecutor()
+        fotoMod()
     }
 
     override fun onPause() {
@@ -203,13 +220,39 @@ class MainActivity : AppCompatActivity() {
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
             try {
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageAnalyzer
-                )
+                if (photoMode) {
+                    cameraProvider.bindToLifecycle(
+                        this, cameraSelector, preview, imageCapture
+                    )
+                } else {
+                    cameraProvider.bindToLifecycle(
+                        this, cameraSelector, preview, imageAnalyzer
+                    )
+                }
             } catch (e: Exception) {
                 Log.e("START_CAMERA", "bind cameraProvideru hodil chybu", e)
             }
         }, ContextCompat.getMainExecutor(this))
+    }
+
+    private fun fotoMod() {
+        if (photoMode) {
+            viewBinding.vyfotButton.visibility = View.VISIBLE
+            viewBinding.fotoModButton.setImageResource(R.drawable.baseline_videocam)
+            viewBinding.fotoModButton.setOnClickListener {
+                photoMode = !photoMode
+                fotoMod()
+                startCamera()
+            }
+        } else {
+            viewBinding.vyfotButton.visibility = View.GONE
+            viewBinding.fotoModButton.setImageResource(R.drawable.baseline_photo_camera)
+            viewBinding.fotoModButton.setOnClickListener {
+                photoMode = !photoMode
+                fotoMod()
+                startCamera()
+            }
+        }
     }
 
     private fun obstarejStranky() {
@@ -253,22 +296,10 @@ class MainActivity : AppCompatActivity() {
         )
         { permissions ->
             var permissionGranted = true
-            var cameraGranted = true
             permissions.entries.forEach {
                 if (it.key in REQUIRED_PERMISSIONS && it.value == false)
-                    if (it.key == Manifest.permission.CAMERA) {
-                        cameraGranted = false
-                    } else {
-                        permissionGranted = false
-                    }
+                    permissionGranted = false
             }
-            if (permissionGranted && cameraGranted) {
-                startCamera()
-            } else if (permissionGranted) {
-                obstarejStranky()
-                // prace bez kamery - z obrazku?
-            } else {
-                // prace bez ostatnich prvku - je template uz stazen?
-            }
+            startCamera()
         }
 }

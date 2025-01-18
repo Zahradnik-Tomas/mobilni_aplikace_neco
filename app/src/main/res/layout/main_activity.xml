@@ -9,7 +9,7 @@
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"></androidx.camera.view.PreviewView>
+        android:layout_height="match_parent" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline"
@@ -56,6 +56,19 @@
         app:layout_constraintEnd_toEndOf="@+id/zobrazButton"
         app:layout_constraintStart_toStartOf="@+id/zobrazButton" />
 
+    <ImageButton
+        android:id="@+id/fotoModButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="?android:selectableItemBackground"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:src="@drawable/baseline_photo_camera"
+        app:layout_constraintEnd_toEndOf="@+id/zobrazButton"
+        app:layout_constraintStart_toStartOf="@+id/zobrazButton"
+        app:layout_constraintTop_toBottomOf="@+id/zobrazButton" />
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/odesliButton"
         android:layout_width="wrap_content"
@@ -67,5 +80,22 @@
         app:borderWidth="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/vyfotButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:alpha="0.6"
+        android:backgroundTint="@color/white"
+        android:src="@drawable/baseline_photo_camera_2"
+        android:visibility="gone"
+        app:backgroundTint="@color/black"
+        app:borderWidth="2dp"
+        app:fabCustomSize="80dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:maxImageSize="35dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
