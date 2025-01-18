@@ -195,6 +195,23 @@ class ZpracujDataActivity : AppCompatActivity() {
                 return true
             }
 
+            R.id.zmenserazeni -> {
+                desc = !desc
+                if (desc) {
+                    item.setIcon(R.drawable.baseline_arrow_downward)
+                } else {
+                    item.setIcon(R.drawable.baseline_arrow_upward)
+                }
+                if (ActionModeDBEntita.actionMode == null) {
+                    zobrazVsechnyData(
+                        Converters.fromString(datumDo),
+                        Converters.fromString(datumOd),
+                        desc = this.desc
+                    )
+                }
+                return true
+            }
+
             android.R.id.home -> {
                 finish()
             }
