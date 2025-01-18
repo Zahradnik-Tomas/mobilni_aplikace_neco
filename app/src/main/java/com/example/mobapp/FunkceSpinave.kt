@@ -66,8 +66,10 @@ object FunkceSpinave {
     public fun ZpracujText(text: com.google.mlkit.vision.text.Text, stranka: Stranka) {
         for (kotva in stranka.kotvy) {
             kotva.bod = null
+            kotva.predPodob = null
             for (hodnota in kotva.hodnoty) {
                 hodnota.bod = null
+                hodnota.predPodob = null
             }
         }
         val zbyvajiciLinky = ArrayList<com.google.mlkit.vision.text.Text.Line>()
@@ -82,7 +84,7 @@ object FunkceSpinave {
                 for (kotva in stranka.kotvy.indices) {
                     val temp2 =
                         FunkceCiste.PodobnostStringu(CacheRozparani.KotvyCache()[kotva], temp)
-                    if (temp2 > 0.8 && temp2 > podobnostMax) {
+                    if (temp2 > 0.8 && temp2 > podobnostMax && (stranka.kotvy[kotva].predPodob == null || temp2 > stranka.kotvy[kotva].predPodob!!)) {
                         podobnostMax = temp2
                         indexPodobne = kotva
                     }
@@ -90,6 +92,7 @@ object FunkceSpinave {
                 if (indexPodobne != -1) {
                     nalezenaKotva = true
                     stranka.kotvy[indexPodobne].bod = line.cornerPoints
+                    stranka.kotvy[indexPodobne].predPodob = podobnostMax
                 } else {
                     zbyvajiciLinky.add(line)
                 }
@@ -113,9 +116,6 @@ object FunkceSpinave {
             val kotva =
                 FunkceCiste.VratMoznouKotvu(stranka, zbyvajiciLinky, CacheRozparani.HodnotyCache())
             if (kotva == null) {
-                for (line in zbyvajiciLinky) {
-                    linkyHodnot.add(line)
-                }
                 return
             }
             for (line in zbyvajiciLinky) {
@@ -219,13 +219,14 @@ object FunkceSpinave {
         val rozpar = FunkceCiste.RozparujString(line.text)
         for (hodnota in kotva.hodnoty.indices) {
             val temp = FunkceCiste.PodobnostStringu(rozpar, kotva.hodnoty[hodnota].nazev)
-            if (temp > 0.8 && temp > maxPodobnost) {
+            if (temp > 0.8 && temp > maxPodobnost && (kotva.hodnoty[hodnota].predPodob == null || temp > kotva.hodnoty[hodnota].predPodob!!)) {
                 index = hodnota
                 maxPodobnost = temp
             }
         }
         if (index != -1) {
             kotva.hodnoty[index].bod = line.cornerPoints
+            kotva.hodnoty[index].predPodob = maxPodobnost
         } else {
             zbyvajiciLinky.add(line)
         }

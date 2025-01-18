@@ -16,7 +16,10 @@ data class Kotva(
     var nazev: String, var hodnoty: Array<Hodnota>,
 
     @Transient
-    var bod: Array<android.graphics.Point>? = null
+    var bod: Array<android.graphics.Point>? = null,
+
+    @Transient
+    var predPodob: Double? = null
 )
 
 @Serializable
@@ -34,5 +37,8 @@ data class Hodnota(
     var confidence: Float = 0.0f,
 
     @Transient
-    var vzdalenost: Double? = null
+    var vzdalenost: Double? = null,
+
+    @Transient
+    var predPodob: Double? = null
 )
