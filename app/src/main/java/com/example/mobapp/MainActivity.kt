@@ -184,6 +184,7 @@ class MainActivity : AppCompatActivity(), IStrankaChangeListener {
 
     override fun onResume() {
         super.onResume()
+        cameraExecutor = Executors.newSingleThreadExecutor()
         if (allPermissionsGranted()) {
             obstarejStranky()
             startCamera()
@@ -191,18 +192,21 @@ class MainActivity : AppCompatActivity(), IStrankaChangeListener {
             requestPermissions()
             return
         }
-        cameraExecutor = Executors.newSingleThreadExecutor()
         fotoMod()
     }
 
     override fun onPause() {
         super.onPause()
-        cameraExecutor.shutdown()
+        if(::cameraExecutor.isInitialized){
+            cameraExecutor.shutdown()
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        cameraExecutor.shutdown()
+        if(::cameraExecutor.isInitialized){
+            cameraExecutor.shutdown()
+        }
     }
 
     private fun startCamera() {
