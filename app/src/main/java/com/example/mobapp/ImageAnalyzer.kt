@@ -19,6 +19,7 @@ class ImageAnalyzerCam : ImageAnalysis.Analyzer {
     private var stranka: Stranka? = null
     val strankaMutex = Mutex()
     private var strankaZmenena = false
+    val listListeneru = ArrayList<IStrankaChangeListener>()
 
     @OptIn(ExperimentalGetImage::class)
     override fun analyze(image: ImageProxy) {
@@ -74,6 +75,9 @@ class ImageAnalyzerCam : ImageAnalysis.Analyzer {
                     CacheRozparani.NastavCache(stranka)
                 } else {
                     FunkceSpinave.NastavStranky(stranky)
+                }
+                for (item in listListeneru) {
+                    item.OnStrankaChanged(stranka)
                 }
             }
         }

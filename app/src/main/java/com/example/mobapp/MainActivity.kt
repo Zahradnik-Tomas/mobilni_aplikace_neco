@@ -37,7 +37,7 @@ import kotlinx.serialization.json.Json
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), IStrankaChangeListener {
     private lateinit var viewBinding: MainActivityBinding
     private lateinit var cameraExecutor: ExecutorService
     private val imageAnalyzerCam = ImageAnalyzerCam()
@@ -179,6 +179,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 })
         }
+        imageAnalyzerCam.listListeneru.add(this)
     }
 
     override fun onResume() {
@@ -302,4 +303,9 @@ class MainActivity : AppCompatActivity() {
             }
             startCamera()
         }
+
+    override fun OnStrankaChanged(stranka: Stranka?) {
+        viewBinding.odesliButton.isEnabled = stranka != null
+        viewBinding.odesliButton.alpha = if (stranka == null) 0.5f else 1.0f
+    }
 }
