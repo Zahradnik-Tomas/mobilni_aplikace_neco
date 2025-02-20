@@ -12,11 +12,6 @@
         android:title="Načíst"
         app:showAsAction="always" />
     <item
-        android:id="@+id/filterdb"
-        android:icon="@drawable/baseline_filter"
-        android:title="Filtrovat"
-        app:showAsAction="ifRoom" />
-    <item
         android:id="@+id/smazdb"
         android:title="Smazat vše" />
     <item

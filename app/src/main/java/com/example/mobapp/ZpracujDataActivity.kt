@@ -115,44 +115,6 @@ class ZpracujDataActivity : AppCompatActivity() {
                 return true
             }
 
-            R.id.filterdb -> {
-                val view =
-                    layoutInflater.inflate(R.layout.db_entita_filtrace, viewBinding.root, false)
-                val dialog = Dialog(this)
-                dialog.setTitle("Filtrace")
-                dialog.setContentView(view)
-                val editDatumOd = view.findViewById<EditText>(R.id.datumOd)
-                val editDatumDo = view.findViewById<EditText>(R.id.datumDo)
-                if (Typy.DATUM.instance.JeTimtoTypem(datumOd)) {
-                    editDatumOd.setText(datumOd)
-                }
-                if (Typy.DATUM.instance.JeTimtoTypem(datumDo)) {
-                    editDatumDo.setText(datumDo)
-                }
-                Typy.DATUM.instance.ZpracujView(editDatumOd, this)
-                Typy.DATUM.instance.ZpracujView(editDatumDo, this)
-                val datDelButton = view.findViewById<ImageButton>(R.id.buttonDelDatum)
-                datDelButton.setOnClickListener {
-                    editDatumOd.text.clear()
-                    editDatumDo.text.clear()
-                }
-                val filterText = view.findViewById<EditText>(R.id.filtraceStranka)
-                val okButton = view.findViewById<Button>(R.id.filtraceOkButton)
-                okButton.setOnClickListener {
-                    datumOd = editDatumOd.text.toString()
-                    datumDo = editDatumDo.text.toString()
-                    dialog.dismiss()
-                    zobrazVsechnyData(
-                        Converters.fromString(editDatumDo.text.toString()),
-                        Converters.fromString(editDatumOd.text.toString()),
-                        "${filterText.text}%",
-                        this.desc
-                    )
-                }
-                dialog.show()
-                return true
-            }
-
             R.id.agregujdb -> {
                 val view =
                     layoutInflater.inflate(R.layout.db_entita_agregace, viewBinding.root, false)
