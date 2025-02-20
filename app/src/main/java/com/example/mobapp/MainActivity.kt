@@ -6,7 +6,6 @@ import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
@@ -120,7 +119,7 @@ class MainActivity : AppCompatActivity(), IStrankaChangeListener {
             dialog.setOnDismissListener {
                 zobrazuji = false
             }
-            ColorDrawable(Color.WHITE).let { color ->
+            ColorDrawable(getColor(R.color.md_theme_surfaceBright_mediumContrast)).let { color ->
                 color.alpha = 180
                 dialog.window!!.setBackgroundDrawable(color)
             }
@@ -197,14 +196,14 @@ class MainActivity : AppCompatActivity(), IStrankaChangeListener {
 
     override fun onPause() {
         super.onPause()
-        if(::cameraExecutor.isInitialized){
+        if (::cameraExecutor.isInitialized) {
             cameraExecutor.shutdown()
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if(::cameraExecutor.isInitialized){
+        if (::cameraExecutor.isInitialized) {
             cameraExecutor.shutdown()
         }
     }

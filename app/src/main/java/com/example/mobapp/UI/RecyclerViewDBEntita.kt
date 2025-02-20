@@ -8,6 +8,12 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.graphics.Paint
+import android.util.Log
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.blue
+import androidx.core.graphics.green
+import androidx.core.graphics.red
 import com.example.mobapp.DB.Converters
 import com.example.mobapp.DB.DBEntita
 import com.example.mobapp.DB.DBHodnota
@@ -43,7 +49,7 @@ class RecyclerViewDBEntita(
 
     init {
         if (entita is DBHodnota) {
-            barva = R.color.hodnotova
+            barva = R.color.md_theme_primary.toInt()
             if (!strankaNazev.isEmpty()) {
                 if (kotvaNazev.isEmpty()) {
                     throw IllegalArgumentException("Nazev kotvy je prazdny")
@@ -65,7 +71,7 @@ class RecyclerViewDBEntita(
                 }
             }
         } else if (entita is DBHodnotaExtra) {
-            barva = R.color.extra_hodnotova.toInt()
+            barva = R.color.md_theme_onPrimaryContainer.toInt()
             editable = true
             deletable = false
             expandable = false
@@ -78,14 +84,14 @@ class RecyclerViewDBEntita(
                 }
             }
         } else if (entita is DBKotva) {
-            barva = R.color.kotvova.toInt()
+            barva = R.color.md_theme_primaryContainer
             editable = false
             deletable = false
             expandable = true
             nazev = entita.nazev
             hodnota = null
         } else {
-            barva = R.color.strankova.toInt()
+            barva = R.color.md_theme_tertiaryContainer.toInt()
             editable = false
             nazev = (entita as DBStranka).nazev
             if (!strankaNazev.isEmpty()) {
@@ -111,6 +117,8 @@ class RecyclerViewDBEntita(
         activity: ZpracujDataActivity
     ) {
         view.setBackgroundColor(activity.resources.getColor(barva, null))
+        nazev.setTextColor(VratOpakBarvy(activity.resources.getColor(barva, null)).toArgb())
+        hodnota.setTextColor(VratOpakBarvy(activity.resources.getColor(barva, null)).toArgb())
         view.setOnClickListener(null)
         view.setOnLongClickListener(null)
         editButton.setOnClickListener(null)
@@ -306,5 +314,9 @@ class RecyclerViewDBEntita(
                 item.Smaz(strankaDao)
             }
         }
+    }
+
+    private fun VratOpakBarvy(barva: Int): Color {
+        return Color(255 - barva.red, 255 - barva.green, 255 - barva.blue, 255)
     }
 }
