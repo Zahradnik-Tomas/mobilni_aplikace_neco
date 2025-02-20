@@ -129,7 +129,6 @@ object FunkceSpinave {
                 continue
             }
             val kotvy: Array<Kotva>
-            var chybiHodnota = false
             val vzdalenosti = ArrayList<Double>()
             val hodnoty = ArrayList<Hodnota>()
             val tempKotva = FunkceCiste.VratPatriciKotvu(line.cornerPoints!![0], stranka.kotvy)
@@ -151,7 +150,6 @@ object FunkceSpinave {
             }
             for (hodnota in listHodnot) {
                 if (hodnota.bod == null) {
-                    chybiHodnota = true
                     continue
                 }
                 val temp =
@@ -185,14 +183,14 @@ object FunkceSpinave {
             if (hodnota.typ.instance.JeTimtoTypem(line.text) && temp2 > temp && (hodnota.vzdalenost == null || hodnota.bodPred == null || hodnota.vzdalenost!! * (FunkceCiste.VzdalenostBodu(
                     hodnota.bodPred!![0],
                     hodnota.bodPred!![1]
-                ) / temp2) > temp) && (chybiHodnota || hodnota.confidence < line.confidence)
+                ) / temp2) > temp / (1 + line.confidence - hodnota.confidence))
             ) {
                 hodnota.hodnota = line.text
                 hodnota.confidence = line.confidence
                 hodnota.vzdalenost = temp
                 hodnota.bodPred = hodnota.bod?.clone()
-                if (chybiHodnota) {
-                    hodnota.confidence = 0.0f
+                if (!nalezenaKotva) {
+                    hodnota.confidence *= 0.69f
                 }
             } else {
                 if (Typy.DATUM.instance.JeTimtoTypem(line.text)) {
