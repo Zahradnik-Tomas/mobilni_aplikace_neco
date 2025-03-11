@@ -31,6 +31,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.util.Calendar
 import java.util.Date
 
 class ZpracujDataActivity : AppCompatActivity() {
@@ -39,7 +40,7 @@ class ZpracujDataActivity : AppCompatActivity() {
     lateinit var strankaDao: StrankaDao
     private lateinit var recyclerView: RecyclerView
     private lateinit var delDatumButton: ImageButton
-    private val mutex = Mutex()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         db = Room.databaseBuilder(this, DB::class.java, getString(R.string.databaze_nazev)).build()
@@ -54,6 +55,8 @@ class ZpracujDataActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val datumOdEditText = findViewById<EditText>(R.id.datumOd)
         val datumDoEditText = findViewById<EditText>(R.id.datumDo)
+        datumOdEditText.setText(datumOd)
+        datumDoEditText.setText(datumDo)
         Typy.DATUM.instance.ZpracujView(datumOdEditText, this)
         Typy.DATUM.instance.ZpracujView(datumDoEditText, this)
         delDatumButton = findViewById<ImageButton>(R.id.buttonDelDatum)
@@ -102,10 +105,22 @@ class ZpracujDataActivity : AppCompatActivity() {
         )
     }
 
-    private var datumOd = ""
-    private var datumDo = ""
+    private var datumOd = { ->
+        val calendar = Calendar.getInstance()
+        var den = calendar.get(Calendar.DAY_OF_MONTH).toString()
+        if (den.length == 1) {
+            den = "0${den}"
+        }
+        var mesic = (calendar.get(Calendar.MONTH) + 1).toString()
+        if (mesic.length == 1) {
+            mesic = "0${mesic}"
+        }
+        "${den}.${mesic}.${calendar.get(Calendar.YEAR) - 1}"
+    }.invoke()
+    private var datumDo = Typy.DATUM.instance.VratDefHodnotu()
     private var desc = true
     private var typAgr: AgrFunkce? = null
+    private val mutex = Mutex()
 
     override fun onDestroy() {
         db.close()
