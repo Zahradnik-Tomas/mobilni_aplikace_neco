@@ -29,6 +29,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.Date
 
 class ZpracujDataActivity : AppCompatActivity() {
@@ -37,6 +39,7 @@ class ZpracujDataActivity : AppCompatActivity() {
     lateinit var strankaDao: StrankaDao
     private lateinit var recyclerView: RecyclerView
     private lateinit var delDatumButton: ImageButton
+    private val mutex = Mutex()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         db = Room.databaseBuilder(this, DB::class.java, getString(R.string.databaze_nazev)).build()
@@ -55,28 +58,41 @@ class ZpracujDataActivity : AppCompatActivity() {
         Typy.DATUM.instance.ZpracujView(datumDoEditText, this)
         delDatumButton = findViewById<ImageButton>(R.id.buttonDelDatum)
         delDatumButton.setOnClickListener {
-            datumOdEditText.text.clear()
-            datumDoEditText.text.clear()
+            CoroutineScope(Dispatchers.Main).launch {
+                mutex.withLock {
+                    datumOdEditText.text.clear()
+                    datumDoEditText.text.clear()
+                }
+                zobrazVsechnyData(
+                    Converters.fromString(datumDo),
+                    Converters.fromString(datumOd),
+                    desc = desc
+                )
+            }
         }
         datumOdEditText.doAfterTextChanged { editable ->
             datumOd = editable.toString()
             typAgr = null
             ActionModeDBEntita.actionMode?.finish()
-            zobrazVsechnyData(
-                Converters.fromString(datumDo),
-                Converters.fromString(datumOd),
-                desc = desc
-            )
+            if (!mutex.isLocked) {
+                zobrazVsechnyData(
+                    Converters.fromString(datumDo),
+                    Converters.fromString(datumOd),
+                    desc = desc
+                )
+            }
         }
         datumDoEditText.doAfterTextChanged { editable ->
             datumDo = editable.toString()
             typAgr = null
             ActionModeDBEntita.actionMode?.finish()
-            zobrazVsechnyData(
-                Converters.fromString(datumDo),
-                Converters.fromString(datumOd),
-                desc = desc
-            )
+            if (!mutex.isLocked) {
+                zobrazVsechnyData(
+                    Converters.fromString(datumDo),
+                    Converters.fromString(datumOd),
+                    desc = desc
+                )
+            }
         }
         title = ""
         zobrazVsechnyData(
