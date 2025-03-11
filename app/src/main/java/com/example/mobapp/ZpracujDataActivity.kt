@@ -40,6 +40,8 @@ class ZpracujDataActivity : AppCompatActivity() {
     lateinit var strankaDao: StrankaDao
     private lateinit var recyclerView: RecyclerView
     private lateinit var delDatumButton: ImageButton
+    private lateinit var datumOdEditText: EditText
+    private lateinit var datumDoEditText: EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,8 +55,8 @@ class ZpracujDataActivity : AppCompatActivity() {
             RecyclerViewAdapterDBEntity(ArrayList(), viewBinding, this, strankaDao)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        val datumOdEditText = findViewById<EditText>(R.id.datumOd)
-        val datumDoEditText = findViewById<EditText>(R.id.datumDo)
+        datumOdEditText = findViewById<EditText>(R.id.datumOd)
+        datumDoEditText = findViewById<EditText>(R.id.datumDo)
         datumOdEditText.setText(datumOd)
         datumDoEditText.setText(datumDo)
         Typy.DATUM.instance.ZpracujView(datumOdEditText, this)
@@ -178,12 +180,31 @@ class ZpracujDataActivity : AppCompatActivity() {
             }
 
             R.id.reloaddb -> {
-                if (datumOd.isEmpty() && datumDo.isEmpty()) {
-                    typAgr = null
-                    ActionModeDBEntita.actionMode?.finish()
-                    zobrazVsechnyData(desc = desc)
-                } else {
-                    delDatumButton.callOnClick()
+                typAgr = null
+                ActionModeDBEntita.actionMode?.finish()
+                datumOd = { ->
+                    val calendar = Calendar.getInstance()
+                    var den = calendar.get(Calendar.DAY_OF_MONTH).toString()
+                    if (den.length == 1) {
+                        den = "0${den}"
+                    }
+                    var mesic = (calendar.get(Calendar.MONTH) + 1).toString()
+                    if (mesic.length == 1) {
+                        mesic = "0${mesic}"
+                    }
+                    "${den}.${mesic}.${calendar.get(Calendar.YEAR) - 1}"
+                }.invoke()
+                datumDo = Typy.DATUM.instance.VratDefHodnotu()
+                CoroutineScope(Dispatchers.Main).launch {
+                    mutex.withLock {
+                        datumOdEditText.setText(datumOd)
+                        datumDoEditText.setText(datumDo)
+                    }
+                    zobrazVsechnyData(
+                        Converters.fromString(datumDo),
+                        Converters.fromString(datumOd),
+                        desc = desc
+                    )
                 }
                 return true
             }
