@@ -162,15 +162,7 @@ class TypProcento : TypyHodnot {
 class TypDatum : TypyHodnot {
     override fun VratDefHodnotu(): String {
         val calendar = Calendar.getInstance()
-        var den = calendar.get(Calendar.DAY_OF_MONTH).toString()
-        if (den.length == 1) {
-            den = "0${den}"
-        }
-        var mesic = (calendar.get(Calendar.MONTH) + 1).toString()
-        if (mesic.length == 1) {
-            mesic = "0${mesic}"
-        }
-        return "${den}.${mesic}.${calendar.get(Calendar.YEAR)}"
+        return FunkceCiste.CalendarToString(calendar)
     }
 
     override fun JeTimtoTypem(str: String): Boolean {

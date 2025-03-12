@@ -12,9 +12,17 @@
         android:title="Načíst"
         app:showAsAction="always" />
     <item
+        android:id="@+id/vybermesic"
+        android:icon="@drawable/baseline_calendar"
+        android:title="Vybrat měsíc"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/smazdb"
         android:title="Smazat vše" />
     <item
         android:id="@+id/agregujdb"
         android:title="Zpracovat" />
+    <item
+        android:id="@+id/zpracujmesic"
+        android:title="Zpracovat měsíc" />
 </menu>

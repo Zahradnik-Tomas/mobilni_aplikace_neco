@@ -58,7 +58,7 @@
             android:layout_toEndOf="@id/textViewDo"
             android:background="@null"
             android:focusable="false"
-            android:hint="00.00.0000"
+            android:hint="31.12.9999"
             android:inputType="none"
             android:minWidth="88dp"
             android:textSize="20sp" />

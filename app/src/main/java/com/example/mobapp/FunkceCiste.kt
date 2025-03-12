@@ -1,6 +1,7 @@
 package com.example.mobapp
 
 import android.graphics.Point
+import java.util.Calendar
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -186,6 +187,18 @@ class FunkceCiste private constructor() {
             }
             stranka.extraHodnoty = Stranka.extraHodnoty.map { it.copy() }.toTypedArray()
             return stranka
+        }
+
+        public fun CalendarToString(calendar: Calendar): String {
+            var den = calendar.get(Calendar.DAY_OF_MONTH).toString()
+            if (den.length == 1) {
+                den = "0${den}"
+            }
+            var mesic = (calendar.get(Calendar.MONTH) + 1).toString()
+            if (mesic.length == 1) {
+                mesic = "0${mesic}"
+            }
+            return "${den}.${mesic}.${calendar.get(Calendar.YEAR)}"
         }
 
         private fun ParyVeSlove(str: String): Array<String> {

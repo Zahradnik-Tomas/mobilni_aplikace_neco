@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.NumberPicker
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
@@ -109,15 +110,8 @@ class ZpracujDataActivity : AppCompatActivity() {
 
     private var datumOd = { ->
         val calendar = Calendar.getInstance()
-        var den = calendar.get(Calendar.DAY_OF_MONTH).toString()
-        if (den.length == 1) {
-            den = "0${den}"
-        }
-        var mesic = (calendar.get(Calendar.MONTH) + 1).toString()
-        if (mesic.length == 1) {
-            mesic = "0${mesic}"
-        }
-        "${den}.${mesic}.${calendar.get(Calendar.YEAR) - 1}"
+        calendar.add(Calendar.YEAR, -1)
+        FunkceCiste.CalendarToString(calendar)
     }.invoke()
     private var datumDo = Typy.DATUM.instance.VratDefHodnotu()
     private var desc = true
@@ -184,15 +178,8 @@ class ZpracujDataActivity : AppCompatActivity() {
                 ActionModeDBEntita.actionMode?.finish()
                 datumOd = { ->
                     val calendar = Calendar.getInstance()
-                    var den = calendar.get(Calendar.DAY_OF_MONTH).toString()
-                    if (den.length == 1) {
-                        den = "0${den}"
-                    }
-                    var mesic = (calendar.get(Calendar.MONTH) + 1).toString()
-                    if (mesic.length == 1) {
-                        mesic = "0${mesic}"
-                    }
-                    "${den}.${mesic}.${calendar.get(Calendar.YEAR) - 1}"
+                    calendar.add(Calendar.YEAR, -1)
+                    FunkceCiste.CalendarToString(calendar)
                 }.invoke()
                 datumDo = Typy.DATUM.instance.VratDefHodnotu()
                 CoroutineScope(Dispatchers.Main).launch {
@@ -200,12 +187,12 @@ class ZpracujDataActivity : AppCompatActivity() {
                         datumOdEditText.setText(datumOd)
                         datumDoEditText.setText(datumDo)
                     }
-                    zobrazVsechnyData(
-                        Converters.fromString(datumDo),
-                        Converters.fromString(datumOd),
-                        desc = desc
-                    )
                 }
+                zobrazVsechnyData(
+                    Converters.fromString(datumDo),
+                    Converters.fromString(datumOd),
+                    desc = desc
+                )
                 return true
             }
 
@@ -223,6 +210,52 @@ class ZpracujDataActivity : AppCompatActivity() {
                         desc = this.desc
                     )
                 }
+                return true
+            }
+
+            R.id.vybermesic -> {
+                val view = layoutInflater.inflate(R.layout.db_vyber_mesic, viewBinding.root, false)
+                val dialog = Dialog(this)
+                dialog.setContentView(view)
+                val rok_picker = view.findViewById<NumberPicker>(R.id.vybrany_rok)
+                val mesic_picker = view.findViewById<NumberPicker>(R.id.vybrany_mesic)
+                rok_picker.maxValue = 9999
+                rok_picker.minValue = 0
+                rok_picker.value = Calendar.getInstance().get(Calendar.YEAR)
+                rok_picker.wrapSelectorWheel = true
+                rok_picker.textSize = 50f // kvuli tomuhle jsem dal min api z 28 na 29
+                mesic_picker.minValue = 0
+                mesic_picker.maxValue = 11
+                mesic_picker.value = Calendar.getInstance().get(Calendar.MONTH)
+                mesic_picker.wrapSelectorWheel = true
+                mesic_picker.displayedValues = resources.getStringArray(R.array.mesice)
+                mesic_picker.textSize = 50f
+                val button = view.findViewById<Button>(R.id.vyber_mesic_ok_button)
+                button.setOnClickListener {
+                    dialog.dismiss()
+                    val calendar = Calendar.getInstance()
+                    calendar.set(rok_picker.value, mesic_picker.value, 1)
+                    datumOd = FunkceCiste.CalendarToString(calendar)
+                    calendar.add(Calendar.MONTH, 1)
+                    calendar.add(Calendar.DAY_OF_MONTH, -1)
+                    datumDo = FunkceCiste.CalendarToString(calendar)
+                    CoroutineScope(Dispatchers.Main).launch {
+                        mutex.withLock {
+                            datumOdEditText.setText(datumOd)
+                            datumDoEditText.setText(datumDo)
+                        }
+                    }
+                    zobrazVsechnyData(
+                        Converters.fromString(datumDo),
+                        Converters.fromString(datumOd),
+                        desc = desc
+                    )
+                }
+                dialog.show()
+                return true
+            }
+
+            R.id.zpracujmesic -> {
                 return true
             }
 
