@@ -3,6 +3,7 @@ package com.example.mobapp
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.ActionMode
 import android.view.Menu
@@ -256,6 +257,38 @@ class ZpracujDataActivity : AppCompatActivity() {
             }
 
             R.id.zpracujmesic -> {
+                val view = layoutInflater.inflate(R.layout.db_vyber_mesic, viewBinding.root, false)
+                val dialog = Dialog(this)
+                dialog.setContentView(view)
+                val rok_picker = view.findViewById<NumberPicker>(R.id.vybrany_rok)
+                val mesic_picker = view.findViewById<NumberPicker>(R.id.vybrany_mesic)
+                rok_picker.maxValue = 9999
+                rok_picker.minValue = 0
+                rok_picker.value = Calendar.getInstance().get(Calendar.YEAR)
+                rok_picker.wrapSelectorWheel = true
+                rok_picker.textSize = 50f
+                mesic_picker.minValue = 0
+                mesic_picker.maxValue = 11
+                mesic_picker.value = Calendar.getInstance().get(Calendar.MONTH)
+                mesic_picker.wrapSelectorWheel = true
+                mesic_picker.displayedValues = resources.getStringArray(R.array.mesice)
+                mesic_picker.textSize = 50f
+                val button = view.findViewById<Button>(R.id.vyber_mesic_ok_button)
+                button.setOnClickListener {
+                    dialog.dismiss()
+                    val calendar = Calendar.getInstance()
+                    calendar.set(rok_picker.value, mesic_picker.value, 1)
+                    val odData = FunkceCiste.CalendarToString(calendar)
+                    calendar.add(Calendar.MONTH, 1)
+                    calendar.add(Calendar.DAY_OF_MONTH, -1)
+                    val doData = FunkceCiste.CalendarToString(calendar)
+                    val intent = Intent(
+                        this,
+                        ZobrazMesicActivity::class.java
+                    ).putExtra(getString(R.string.klic_json), arrayOf(odData, doData))
+                    startActivity(intent)
+                }
+                dialog.show()
                 return true
             }
 

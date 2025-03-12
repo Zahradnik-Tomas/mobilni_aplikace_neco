@@ -40,6 +40,9 @@
             android:name=".ZpracujDataActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:theme="@style/AppTheme" />
+        <activity android:name=".ZobrazMesicActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:theme="@style/AppTheme" />
     </application>
 
 </manifest>
