@@ -1,10 +1,14 @@
 package com.example.mobapp
 
+import android.graphics.Paint
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
+import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.doAfterTextChanged
+import androidx.core.widget.doBeforeTextChanged
 import androidx.room.Room
 import com.example.mobapp.DB.Converters
 import com.example.mobapp.DB.DB
@@ -12,6 +16,7 @@ import com.example.mobapp.databinding.ZobrazMesicActivityBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 
 class ZobrazMesicActivity : AppCompatActivity() {
     private lateinit var db: DB
@@ -31,6 +36,9 @@ class ZobrazMesicActivity : AppCompatActivity() {
         textView?.text = "${datumy!![0]} - ${datumy[1]}"
         textView?.textSize = 25f
         val table = viewBinding.zobrazTableLayout
+        val temp = this.openFileInput(getString(R.string.soubor_templatu)).bufferedReader()
+        val Stranky = Json.decodeFromString<Array<Stranka>>(temp.readLine())
+        temp.close()
         CoroutineScope(Dispatchers.Main).launch {
             val kostry = strankaDao.vratNejnovKostryStranekMeziDaty(
                 Converters.fromString(datumy!![0])!!,
@@ -62,7 +70,20 @@ class ZobrazMesicActivity : AppCompatActivity() {
                     }
                 }
                 if (kotvy.isNotEmpty()) {
-                    stranky.add(Stranka(stranka.stranka.nazev, kotvy.toTypedArray()))
+                    var vypocty = emptyArray<Vypocet>()
+                    for (dalsiStranka in Stranky) {
+                        if (dalsiStranka.nazev == stranka.stranka.nazev) {
+                            vypocty = dalsiStranka.vypocty
+                            break
+                        }
+                    }
+                    stranky.add(
+                        Stranka(
+                            stranka.stranka.nazev,
+                            kotvy.toTypedArray(),
+                            vypocty = vypocty
+                        )
+                    )
                 }
             }
             for (stranka in stranky) {
@@ -71,6 +92,11 @@ class ZobrazMesicActivity : AppCompatActivity() {
                     table.addView(getKotvaRow(kotva.nazev))
                     for (hodnota in kotva.hodnoty) {
                         table.addView(getHodnotaRow(hodnota.nazev, hodnota.hodnota))
+                    }
+                }
+                for (vypocet in stranka.vypocty) {
+                    for (view in vratVypoctyRows(vypocet, stranka)) {
+                        table.addView(view)
                     }
                 }
             }
@@ -106,5 +132,167 @@ class ZobrazMesicActivity : AppCompatActivity() {
         val row = layoutInflater.inflate(R.layout.table_row_stranka, viewBinding.root, false)
         row.findViewById<TextView>(R.id.textViewStranka).text = nazev
         return row
+    }
+
+    private fun vratVypoctyRows(vypocet: Vypocet, stranka: Stranka): ArrayList<View> {
+        val vypocty = ArrayList<View>()
+        val vysledekView =
+            layoutInflater.inflate(R.layout.table_row_hodnota2, viewBinding.root, false)
+        vysledekView.findViewById<TextView>(R.id.textViewNazev).text = vypocet.nazevVysledku
+        val vysledek = vysledekView.findViewById<TextView>(R.id.textViewHodnota)
+        for (nasobitel in vypocet.nasobitele) {
+            val nasobitelView =
+                layoutInflater.inflate(R.layout.vloz_hodnota, viewBinding.root, false)
+            nasobitelView.findViewById<TextView>(R.id.textViewHodnota).text = nasobitel.nazevVypoctu
+            val nasobitelNasobic = nasobitelView.findViewById<EditText>(R.id.editTextHodnota)
+            Typy.DECIMAL.instance.ZpracujView(nasobitelNasobic, this)
+            nasobitelNasobic.doBeforeTextChanged { s, st, c, a ->
+                if (Typy.DECIMAL.instance.JeTimtoTypem(
+                        nasobitelNasobic.text.toString().replace(".", ",")
+                    ) || Typy.CISLO.instance.JeTimtoTypem(nasobitelNasobic.text.toString())
+                ) {
+                    if (Typy.DECIMAL.instance.JeTimtoTypem(
+                            vysledek.text.toString().replace(".", ",")
+                        )
+                    ) {
+                        vysledek.text =
+                            (vysledek.text.toString().replace(",", ".").toDouble() - VratSUMHodnotu(
+                                nasobitel.kotvaNazev,
+                                nasobitel.hodnotaNazev,
+                                stranka
+                            ) * nasobitelNasobic.text.toString().replace(",", ".")
+                                .toDouble()).toString()
+                    }
+                }
+            }
+            nasobitelNasobic.doAfterTextChanged { e ->
+                if (Typy.DECIMAL.instance.JeTimtoTypem(
+                        nasobitelNasobic.text.toString().replace(".", ",")
+                    ) || Typy.CISLO.instance.JeTimtoTypem(nasobitelNasobic.text.toString())
+                ) {
+                    if (Typy.DECIMAL.instance.JeTimtoTypem(
+                            vysledek.text.toString().replace(".", ",")
+                        )
+                    ) {
+                        vysledek.text =
+                            (vysledek.text.toString().replace(",", ".").toDouble() + VratSUMHodnotu(
+                                nasobitel.kotvaNazev,
+                                nasobitel.hodnotaNazev,
+                                stranka
+                            ) * nasobitelNasobic.text.toString().replace(",", ".")
+                                .toDouble()).toString()
+                    } else {
+                        vysledek.text =
+                            (VratSUMHodnotu(
+                                nasobitel.kotvaNazev,
+                                nasobitel.hodnotaNazev,
+                                stranka
+                            ) * nasobitelNasobic.text.toString().replace(",", ".")
+                                .toDouble()).toString()
+                    }
+                } else {
+                    nasobitelNasobic.error = "Není platná hodnota"
+                }
+            }
+            nasobitelNasobic.setText(nasobitel.nasobic.toString())
+            nasobitelNasobic.paintFlags = Paint.UNDERLINE_TEXT_FLAG
+            vypocty.add(nasobitelView)
+        }
+        for (pricitac in vypocet.pricitaci) {
+            val pricitacViewHodnota =
+                layoutInflater.inflate(R.layout.vloz_hodnota, viewBinding.root, false)
+            val pricitacViewPocet =
+                layoutInflater.inflate(R.layout.vloz_hodnota, viewBinding.root, false)
+            pricitacViewHodnota.findViewById<TextView>(R.id.textViewHodnota).text =
+                pricitac.nazevVypoctu
+            pricitacViewPocet.findViewById<TextView>(R.id.textViewHodnota).text =
+                pricitac.nazevMultiplikatoru
+            val pricitacHodnota = pricitacViewHodnota.findViewById<EditText>(R.id.editTextHodnota)
+            val pricitacMultiplikator =
+                pricitacViewPocet.findViewById<EditText>(R.id.editTextHodnota)
+            for (view in arrayOf(pricitacHodnota, pricitacMultiplikator)) {
+                Typy.DECIMAL.instance.ZpracujView(view, this)
+                view.doBeforeTextChanged { s, st, c, a ->
+                    if ((Typy.DECIMAL.instance.JeTimtoTypem(
+                            pricitacHodnota.text.toString().replace(".", ",")
+                        ) || Typy.CISLO.instance.JeTimtoTypem(pricitacHodnota.text.toString())
+                                ) && (Typy.DECIMAL.instance.JeTimtoTypem(
+                            pricitacMultiplikator.text.toString().replace(".", ",")
+                        ) || Typy.CISLO.instance.JeTimtoTypem(pricitacMultiplikator.text.toString()))
+                    ) {
+                        if (Typy.DECIMAL.instance.JeTimtoTypem(
+                                vysledek.text.toString().replace(".", ",")
+                            )
+                        ) {
+                            vysledek.text =
+                                (vysledek.text.toString().replace(",", ".")
+                                    .toDouble() - pricitacHodnota.text.toString().replace(",", ".")
+                                    .toDouble() * pricitacMultiplikator.text.toString()
+                                    .replace(",", ".")
+                                    .toDouble()).toString()
+                        }
+                    }
+                }
+                view.doAfterTextChanged { e ->
+                    if (Typy.DECIMAL.instance.JeTimtoTypem(
+                            view.text.toString().replace(".", ",")
+                        ) || Typy.CISLO.instance.JeTimtoTypem(view.text.toString())
+                    ) {
+                        if ((Typy.DECIMAL.instance.JeTimtoTypem(
+                                pricitacHodnota.text.toString().replace(".", ",")
+                            ) || Typy.CISLO.instance.JeTimtoTypem(pricitacHodnota.text.toString())
+                                    ) && (Typy.DECIMAL.instance.JeTimtoTypem(
+                                pricitacMultiplikator.text.toString().replace(".", ",")
+                            ) || Typy.CISLO.instance.JeTimtoTypem(pricitacMultiplikator.text.toString()))
+                        ) {
+                            if (Typy.DECIMAL.instance.JeTimtoTypem(
+                                    vysledek.text.toString().replace(".", ",")
+                                )
+                            ) {
+                                vysledek.text =
+                                    (vysledek.text.toString().replace(",", ".")
+                                        .toDouble() + pricitacHodnota.text.toString()
+                                        .replace(",", ".")
+                                        .toDouble() * pricitacMultiplikator.text.toString()
+                                        .replace(",", ".").toDouble()).toString()
+                            } else {
+                                vysledek.text =
+                                    (pricitacHodnota.text.toString().replace(",", ".")
+                                        .toDouble() * pricitacMultiplikator.text.toString()
+                                        .replace(",", ".").toDouble()).toString()
+                            }
+                        }
+
+                    } else {
+                        view.error = "Není platná hodnota"
+                    }
+                }
+            }
+            pricitacHodnota.setText(pricitac.pricteno.toString())
+            pricitacMultiplikator.setText("0.0")
+            pricitacHodnota.paintFlags = Paint.UNDERLINE_TEXT_FLAG
+            pricitacMultiplikator.paintFlags = Paint.UNDERLINE_TEXT_FLAG
+            vypocty.add(pricitacViewHodnota)
+            vypocty.add(pricitacViewPocet)
+        }
+        if (vypocty.isNotEmpty()) {
+            vypocty.add(vysledekView)
+        }
+        return vypocty
+    }
+
+    private fun VratSUMHodnotu(kotvaNazev: String, hodnotaNazev: String, stranka: Stranka): Double {
+        for (kotva in stranka.kotvy) {
+            if (kotva.nazev != kotvaNazev) {
+                continue
+            }
+            for (hodnota in kotva.hodnoty) {
+                if (hodnota.nazev != hodnotaNazev) {
+                    continue
+                }
+                return hodnota.hodnota.toDouble()
+            }
+        }
+        return 0.0
     }
 }

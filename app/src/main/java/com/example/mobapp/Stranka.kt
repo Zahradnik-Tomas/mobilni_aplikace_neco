@@ -8,7 +8,8 @@ data class Stranka(
     var nazev: String,
     var kotvy: Array<Kotva>,
     var extraHodnoty: Array<Hodnota> = emptyArray<Hodnota>(),
-    var datum: String = ""
+    var datum: String = "",
+    var vypocty: Array<Vypocet> = emptyArray<Vypocet>()
 )
 
 @Serializable
@@ -41,4 +42,26 @@ data class Hodnota(
 
     @Transient
     var predPodob: Double? = null
+)
+
+@Serializable
+data class Vypocet(
+    var nazevVysledku: String,
+    var nasobitele: Array<Nasobitel> = emptyArray<Nasobitel>(),
+    var pricitaci: Array<Pricitac> = emptyArray<Pricitac>()
+)
+
+@Serializable
+data class Nasobitel(
+    var kotvaNazev: String,
+    var hodnotaNazev: String,
+    var nasobic: Double,
+    var nazevVypoctu: String
+)
+
+@Serializable
+data class Pricitac(
+    var pricteno: Double,
+    var nazevVypoctu: String,
+    var nazevMultiplikatoru: String
 )
