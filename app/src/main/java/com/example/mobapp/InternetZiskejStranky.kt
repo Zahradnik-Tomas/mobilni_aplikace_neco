@@ -132,7 +132,6 @@ class InternetZiskejStranky : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 errorKVraceni = e.message.toString()
-
             } finally {
                 connection.disconnect()
             }
@@ -195,6 +194,8 @@ class InternetZiskejStranky : AppCompatActivity() {
                 } else {
                     errorKVraceni = connection.errorStream.bufferedReader().readLine()
                 }
+            } catch (e: Exception) {
+                errorKVraceni = e.message.toString()
             } finally {
                 connection.disconnect()
             }
