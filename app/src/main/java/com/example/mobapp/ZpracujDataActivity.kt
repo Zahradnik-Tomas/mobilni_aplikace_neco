@@ -159,7 +159,7 @@ class ZpracujDataActivity : AppCompatActivity() {
                     android.R.layout.simple_spinner_item,
                     hodnotySpinneru
                 ).also { adapter ->
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_item)
+                    adapter.setDropDownViewResource(R.layout.spinner_item_muj)
                     spinner.adapter = adapter
                 }
                 spinner.setSelection(0)
