@@ -74,6 +74,15 @@ class MainActivity : AppCompatActivity(), IStrankaChangeListener {
                 }
             }
         }
+    private val intentLauncherVloz =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val intent = result.data
+                if (intent != null && intent.extras != null) {
+                    imageAnalyzerCam.NastavStranku(null)
+                }
+            }
+        }
 
     private var zobrazuji = false
     private var photoMode = false
@@ -94,7 +103,7 @@ class MainActivity : AppCompatActivity(), IStrankaChangeListener {
                         )
                     )
                     imageAnalyzerCam.strankaMutex.unlock()
-                    startActivity(intent)
+                    intentLauncherVloz.launch(intent)
                 } else {
                     imageAnalyzerCam.strankaMutex.unlock()
                 }
@@ -143,6 +152,26 @@ class MainActivity : AppCompatActivity(), IStrankaChangeListener {
                         strankaText.text = "Nic"
                     } else {
                         strankaText.text = stranka.nazev
+                        val hodnotaRow = layoutInflater.inflate(
+                            R.layout.table_row_hodnota,
+                            viewBinding.root,
+                            false
+                        )
+                        val hodnotaText =
+                            hodnotaRow.findViewById<TextView>(R.id.textViewHodnota)
+                        hodnotaText.text = "Datum: ${stranka.datum}"
+                        table.addView(hodnotaRow)
+                        for (extraHodnota in stranka.extraHodnoty) {
+                            val hodnotaRow = layoutInflater.inflate(
+                                R.layout.table_row_hodnota,
+                                viewBinding.root,
+                                false
+                            )
+                            val hodnotaText =
+                                hodnotaRow.findViewById<TextView>(R.id.textViewHodnota)
+                            hodnotaText.text = "${extraHodnota.nazev} - ${extraHodnota.hodnota}"
+                            table.addView(hodnotaRow)
+                        }
                         for (kotva in stranka.kotvy) {
                             val kotvaRow = layoutInflater.inflate(
                                 R.layout.table_row_kotva,

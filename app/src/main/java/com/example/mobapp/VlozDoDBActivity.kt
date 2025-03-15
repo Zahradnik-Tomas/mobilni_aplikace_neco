@@ -1,5 +1,6 @@
 package com.example.mobapp
 
+import android.content.Intent
 import android.graphics.Paint
 import android.os.Bundle
 import android.view.MenuItem
@@ -148,6 +149,9 @@ class VlozDoDBActivity : AppCompatActivity() {
                     )
                 }
             }
+            val dataKVraceni = Intent()
+            dataKVraceni.putExtra(getString(R.string.klic_json), "OK")
+            setResult(RESULT_OK, dataKVraceni)
             finish()
         }
     }
